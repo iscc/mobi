@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "mobi"
+version = "0.1.0"
+description = "unpack mobi files"
+authors = ["Titusz Pan <tp@py7.de>"]
+license = "GPL-3.0-only"
+readme = "README.md"
+homepage = "https://github/iscc/mobi"
+repository = "https://github.com/iscc/mobi"
+keywords = ["mobi", "mobipocket", "unpack", "extract", "text"]
+
+classifiers = [
+    "Development Status :: 1 - Planning",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5"
+black = { version = "^19.10b0", python = "^3.6" }
+
+[build-system]
+requires = ["poetry>=1.0.5"]
+build-backend = "poetry.masonry.api"

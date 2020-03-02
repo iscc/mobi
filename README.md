@@ -1,0 +1,3 @@
+# mobi - lib for unpacking mobi files
+
+work in progress ...
