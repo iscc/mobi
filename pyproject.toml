@@ -13,6 +13,9 @@ classifiers = [
     "Development Status :: 1 - Planning",
 ]
 
+[tool.poetry.scripts]
+mobiunpack = 'mobi.kindleunpack:main'
+
 [tool.poetry.dependencies]
 python = "^3.6"
 
