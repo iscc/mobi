@@ -6,6 +6,7 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 
 from .compatibility_utils import unicode_str, unescapeit
 from .compatibility_utils import lzip
+from loguru import logger
 
 from .unipath import pathof
 
@@ -325,7 +326,7 @@ class OPFProcessor(object):
             imageNumber = int(metadata["CoverOffset"][0])
             self.covername = self.rscnames[imageNumber]
             if self.covername is None:
-                print(
+                logger.debug(
                     "Error: Cover image %s was not recognized as a valid image"
                     % imageNumber
                 )
@@ -360,7 +361,7 @@ class OPFProcessor(object):
             priceList = metadata["Price"]
             currencyList = metadata["Currency"]
             if len(priceList) != len(currencyList):
-                print("Error: found %s price entries, but %s currency entries.")
+                logger.debug("Error: found %s price entries, but %s currency entries.")
             else:
                 for i in range(len(priceList)):
                     data.append(
@@ -386,7 +387,7 @@ class OPFProcessor(object):
             imageNumber = int(metadata["ThumbOffset"][0])
             imageName = self.rscnames[imageNumber]
             if imageName is None:
-                print(
+                logger.debug(
                     "Error: Cover Thumbnail image %s was not recognized as a valid image"
                     % imageNumber
                 )
@@ -588,7 +589,7 @@ class OPFProcessor(object):
 
     def buildMobi7OPF(self):
         # Build an OPF for mobi7 and azw4.
-        print("Building an opf for mobi7/azw4.")
+        logger.debug("Building an opf for mobi7/azw4.")
         data = []
         data.append('<?xml version="1.0" encoding="utf-8"?>\n')
         data.append(
@@ -614,7 +615,9 @@ class OPFProcessor(object):
         return "".join(data)
 
     def buildEPUBOPF(self, has_obfuscated_fonts=False):
-        print("Building an opf for mobi8 using epub version: ", self.target_epubver)
+        logger.debug(
+            "Building an opf for mobi8 using epub version: %s" % self.target_epubver
+        )
         if self.target_epubver == "2":
             has_ncx = self.has_ncx
             has_guide = True

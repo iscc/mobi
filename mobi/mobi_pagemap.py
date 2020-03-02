@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from .compatibility_utils import PY2, unicode_str
+from loguru import logger
 
 if PY2:
     range = xrange
@@ -92,7 +93,7 @@ def _parseNames(numpages, data):
                     pname = svalue[0:sp]
                     svalue = svalue[sp + 1 :]
             else:
-                print("Error: unknown page numbering type", nametype)
+                logger.debug("Error: unknown page numbering type %s" % nametype)
             pagenames[i] = pname
     return pagenames, pageMap
 
@@ -109,7 +110,7 @@ class PageMapProcessor:
         self.pn_bits = 0
         self.pmoff = None
         self.pmstr = ""
-        print("Extracting Page Map Information")
+        logger.debug("Extracting Page Map Information")
         (rev_len,) = struct.unpack_from(b">L", self.data, 0x10)
         # skip over header, revision string length data, and revision string
         ptr = 0x14 + rev_len

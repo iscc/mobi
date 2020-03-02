@@ -3,9 +3,8 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from __future__ import unicode_literals, division, absolute_import, print_function
-
 from .compatibility_utils import unicode_str
-
+from loguru import logger
 from .unipath import pathof
 import os
 import imghdr
@@ -151,7 +150,7 @@ class CoverProcessor(object):
             if cover_image is not None:
                 self.cover_image = cover_image
             else:
-                print("Warning: Cannot identify the cover image.")
+                logger.debug("Warning: Cannot identify the cover image.")
         if self.use_svg:
             try:
                 if imgdata is None:
@@ -174,7 +173,7 @@ class CoverProcessor(object):
         return self.cover_page
 
     def buildXHTML(self):
-        print("Building a cover page.")
+        logger.debug("Building a cover page.")
         files = self.files
         cover_image = self.cover_image
         title = self.title
@@ -231,7 +230,7 @@ class CoverProcessor(object):
 
         outfile = os.path.join(files.k8text, cover_page)
         if os.path.exists(pathof(outfile)):
-            print("Warning: {:s} already exists.".format(cover_page))
+            logger.debug("Warning: {:s} already exists.".format(cover_page))
             os.remove(pathof(outfile))
         with open(pathof(outfile), "wb") as f:
             f.write(data.encode("utf-8"))

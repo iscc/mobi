@@ -13,6 +13,7 @@ else:
     dict_ = dict
 
 from .compatibility_utils import PY2, unicode_str, hexlify, bord
+from loguru import logger
 
 if PY2:
     range = xrange
@@ -171,7 +172,7 @@ def dump_contexth(cpage, extheader):
         content = extheader[pos + 8 : pos + size]
         if id in id_map_strings:
             name = id_map_strings[id]
-            print(
+            logger.debug(
                 '\n    Key: "%s"\n        Value: "%s"'
                 % (name, content.decode(codec, errors="replace"))
             )
@@ -179,22 +180,28 @@ def dump_contexth(cpage, extheader):
             name = id_map_values[id]
             if size == 9:
                 (value,) = struct.unpack(b"B", content)
-                print('\n    Key: "%s"\n        Value: 0x%01x' % (name, value))
+                logger.debug('\n    Key: "%s"\n        Value: 0x%01x' % (name, value))
             elif size == 10:
                 (value,) = struct.unpack(b">H", content)
-                print('\n    Key: "%s"\n        Value: 0x%02x' % (name, value))
+                logger.debug('\n    Key: "%s"\n        Value: 0x%02x' % (name, value))
             elif size == 12:
                 (value,) = struct.unpack(b">L", content)
-                print('\n    Key: "%s"\n        Value: 0x%04x' % (name, value))
+                logger.debug('\n    Key: "%s"\n        Value: 0x%04x' % (name, value))
             else:
-                print("\nError: Value for %s has unexpected size of %s" % (name, size))
+                logger.debug(
+                    "\nError: Value for %s has unexpected size of %s" % (name, size)
+                )
         elif id in id_map_hexstrings:
             name = id_map_hexstrings[id]
-            print('\n    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content)))
+            logger.debug(
+                '\n    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content))
+            )
         else:
-            print("\nWarning: Unknown metadata with id %s found" % id)
+            logger.debug("\nWarning: Unknown metadata with id %s found" % id)
             name = str(id) + " (hex)"
-            print('    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content)))
+            logger.debug(
+                '    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content))
+            )
         pos += size
     return
 
@@ -680,14 +687,14 @@ class MobiHeader:
             return
         (num_items,) = struct.unpack(b">L", self.exth[8:12])
         pos = 12
-        print("Key Size Decription                     Value")
+        logger.debug("Key Size Decription                     Value")
         for _ in range(num_items):
             id, size = struct.unpack(b">LL", self.exth[pos : pos + 8])
             contentsize = size - 8
             content = self.exth[pos + 8 : pos + size]
             if id in MobiHeader.id_map_strings:
                 exth_name = MobiHeader.id_map_strings[id]
-                print(
+                logger.debug(
                     "{0: >3d} {1: >4d} {2: <30s} {3:s}".format(
                         id,
                         contentsize,
@@ -699,23 +706,25 @@ class MobiHeader:
                 exth_name = MobiHeader.id_map_values[id]
                 if size == 9:
                     (value,) = struct.unpack(b"B", content)
-                    print("{0:3d} byte {1:<30s} {2:d}".format(id, exth_name, value))
+                    logger.debug(
+                        "{0:3d} byte {1:<30s} {2:d}".format(id, exth_name, value)
+                    )
                 elif size == 10:
                     (value,) = struct.unpack(b">H", content)
-                    print(
+                    logger.debug(
                         "{0:3d} word {1:<30s} 0x{2:0>4X} ({2:d})".format(
                             id, exth_name, value
                         )
                     )
                 elif size == 12:
                     (value,) = struct.unpack(b">L", content)
-                    print(
+                    logger.debug(
                         "{0:3d} long {1:<30s} 0x{2:0>8X} ({2:d})".format(
                             id, exth_name, value
                         )
                     )
                 else:
-                    print(
+                    logger.debug(
                         "{0: >3d} {1: >4d} {2: <30s} (0x{3:s})".format(
                             id,
                             contentsize,
@@ -725,14 +734,14 @@ class MobiHeader:
                     )
             elif id in MobiHeader.id_map_hexstrings:
                 exth_name = MobiHeader.id_map_hexstrings[id]
-                print(
+                logger.debug(
                     "{0:3d} {1:4d} {2:<30s} 0x{3:s}".format(
                         id, contentsize, exth_name, hexlify(content)
                     )
                 )
             else:
                 exth_name = "Unknown EXTH ID {0:d}".format(id)
-                print(
+                logger.debug(
                     "{0: >3d} {1: >4d} {2: <30s} 0x{3:s}".format(
                         id, contentsize, exth_name, hexlify(content)
                     )
@@ -744,7 +753,7 @@ class MobiHeader:
         # first 16 bytes are not part of the official mobiheader
         # but we will treat it as such
         # so section 0 is 16 (decimal) + self.length in total == at least 0x108 bytes for Mobi 8 headers
-        print(
+        logger.debug(
             "Dumping section %d, Mobipocket Header version: %d, total length %d"
             % (self.start, self.version, self.length + 16)
         )
@@ -787,8 +796,8 @@ class MobiHeader:
         self.extra1 = self.header[self.exth_offset + self.exth_length : title_offset]
         self.extra2 = self.header[title_offset + title_length :]
 
-        print("Mobipocket header from section %d" % self.start)
-        print("     Offset  Value Hex Dec        Description")
+        logger.debug("Mobipocket header from section %d" % self.start)
+        logger.debug("     Offset  Value Hex Dec        Description")
         for key in self.mobi_header_sorted_keys:
             (pos, format, tot_len) = self.mobi_header[key]
             if pos < (self.length + 16):
@@ -803,28 +812,30 @@ class MobiHeader:
                 else:
                     self.hdr[key] = unicode_str(self.hdr[key])
                     fmt_string = "0x{0:0>3X} ({0:3d}){2:>11s}            {3:s}"
-                print(fmt_string.format(pos, " ", self.hdr[key], key))
-        print("")
+                logger.debug(fmt_string.format(pos, " ", self.hdr[key], key))
+        logger.debug("")
 
         if self.exth_length > 0:
-            print(
+            logger.debug(
                 "EXTH metadata, offset %d, padded length %d"
                 % (self.exth_offset, self.exth_length)
             )
             self.dump_exth()
-            print("")
+            logger.debug("")
 
         if len(self.extra1) > 0:
-            print("Extra data between EXTH and Title, length %d" % len(self.extra1))
-            print(hexlify(self.extra1))
-            print("")
+            logger.debug(
+                "Extra data between EXTH and Title, length %d" % len(self.extra1)
+            )
+            logger.debug(hexlify(self.extra1))
+            logger.debug("")
 
         if title_length > 0:
-            print(
+            logger.debug(
                 "Title in header at offset %d, padded length %d: '%s'"
                 % (title_offset, title_length, self.title)
             )
-            print("")
+            logger.debug("")
 
         if len(self.extra2) > 0:
             print(
@@ -910,7 +921,7 @@ class MobiHeader:
                         trailers += 1
                     flags = flags >> 1
         # get raw mobi markup languge
-        print("Unpacking raw markup language")
+        logger.debug("Unpacking raw markup language")
         dataList = []
         # offset = 0
         for i in range(1, self.records + 1):
@@ -1001,16 +1012,16 @@ class MobiHeader:
         return self.metadata
 
     def describeHeader(self, DUMP):
-        print("Mobi Version:", self.version)
-        print("Codec:", self.codec)
-        print("Title:", self.title)
+        logger.debug("Mobi Version: %s" % self.version)
+        logger.debug("Codec: %s" % self.codec)
+        logger.debug("Title: %s" % self.title)
         if "Updated_Title" in self.metadata:
-            print("EXTH Title:", self.metadata["Updated_Title"][0])
+            logger.debug("EXTH Title: %s" % self.metadata["Updated_Title"][0])
         if self.compression == 0x4448:
-            print("Huffdic compression")
+            logger.debug("Huffdic compression")
         elif self.compression == 2:
-            print("Palmdoc compression")
+            logger.debug("Palmdoc compression")
         elif self.compression == 1:
-            print("No compression")
+            logger.debug("No compression")
         if DUMP:
             self.dumpheader()

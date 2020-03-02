@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from .compatibility_utils import PY2, PY3, utf8_str, bstr, bchr
+from loguru import logger
 
 if PY2:
     range = xrange
@@ -44,7 +45,7 @@ class InflectionData(object):
             rvalue = rvalue - self.counts[i]
             i += 1
             if i == len(self.counts):
-                print("Error: Problem with multiple inflections data sections")
+                logger.debug("Error: Problem with multiple inflections data sections")
                 return lookupvalue, self.starts[0], self.counts[0], self.infldatas[0]
         return rvalue, self.starts[i], self.counts[i], self.infldatas[i]
 
@@ -71,7 +72,7 @@ class dictSupport(object):
     def parseHeader(self, data):
         "read INDX header"
         if not data[:4] == b"INDX":
-            print("Warning: index section is not INDX")
+            logger.debug("Warning: index section is not INDX")
             return False
         words = (
             "len",
@@ -102,7 +103,7 @@ class dictSupport(object):
         header["oentries"] = oentries
 
         if DEBUG_DICT:
-            print(
+            logger.debug(
                 "otype %d, oentries %d, op1 %d, op2 %d, otagx %d"
                 % (otype, oentries, op1, op2, otagx)
             )
@@ -123,12 +124,12 @@ class dictSupport(object):
             ordt2 = struct.unpack_from(bstr(">%dH" % oentries), data, op2 + 4)
 
         if DEBUG_DICT:
-            print("parsed INDX header:")
+            logger.debug("parsed INDX header:")
             for key in header:
-                print(
+                logger.debug(
                     key, "%x" % header[key],
                 )
-            print("\n")
+            logger.debug("\n")
         return header, ordt1, ordt2
 
     def getPositionMap(self):
@@ -141,13 +142,15 @@ class dictSupport(object):
 
         decodeInflection = True
         if metaOrthIndex != 0xFFFFFFFF:
-            print("Info: Document contains orthographic index, handle as dictionary")
+            logger.debug(
+                "Info: Document contains orthographic index, handle as dictionary"
+            )
             if metaInflIndex == 0xFFFFFFFF:
                 decodeInflection = False
             else:
                 metaInflIndexData = sect.loadSection(metaInflIndex)
 
-                print("\nParsing metaInflIndexData")
+                logger.debug("\nParsing metaInflIndexData")
                 midxhdr, mhordt1, mhordt2 = self.parseHeader(metaInflIndexData)
 
                 metaIndexCount = midxhdr["count"]
@@ -162,31 +165,33 @@ class dictSupport(object):
                     tagSectionStart, metaInflIndexData
                 )
                 if DEBUG_DICT:
-                    print("inflectionTagTable: %s" % inflectionTagTable)
+                    logger.debug("inflectionTagTable: %s" % inflectionTagTable)
                 if self.hasTag(inflectionTagTable, 0x07):
-                    print(
+                    logger.debug(
                         "Error: Dictionary uses obsolete inflection rule scheme which is not yet supported"
                     )
                     decodeInflection = False
 
             data = sect.loadSection(metaOrthIndex)
 
-            print("\nParsing metaOrthIndex")
+            logger.debug("\nParsing metaOrthIndex")
             idxhdr, hordt1, hordt2 = self.parseHeader(data)
 
             tagSectionStart = idxhdr["len"]
             controlByteCount, tagTable = readTagSection(tagSectionStart, data)
             orthIndexCount = idxhdr["count"]
-            print("orthIndexCount is", orthIndexCount)
+            logger.debug("orthIndexCount is", orthIndexCount)
             if DEBUG_DICT:
-                print("orthTagTable: %s" % tagTable)
+                logger.debug("orthTagTable: %s" % tagTable)
             if hordt2 is not None:
-                print("orth entry uses ordt2 lookup table of type ", idxhdr["otype"])
+                logger.debug(
+                    "orth entry uses ordt2 lookup table of type ", idxhdr["otype"]
+                )
             hasEntryLength = self.hasTag(tagTable, 0x02)
             if not hasEntryLength:
-                print("Info: Index doesn't contain entry length tags")
+                logger.debug("Info: Index doesn't contain entry length tags")
 
-            print("Read dictionary index data")
+            logger.debug("Read dictionary index data")
             for i in range(metaOrthIndex + 1, metaOrthIndex + 1 + orthIndexCount):
                 data = sect.loadSection(i)
                 hdrinfo, ordt1, ordt2 = self.parseHeader(data)
@@ -319,10 +324,10 @@ class dictSupport(object):
 
             # Make sure that the required tags are available.
             if 0x05 not in tagMap:
-                print("Error: Required tag 0x05 not found in tagMap")
+                logger.debug("Error: Required tag 0x05 not found in tagMap")
                 return ""
             if 0x1A not in tagMap:
-                print("Error: Required tag 0x1a not found in tagMap")
+                logger.debug("Error: Required tag 0x1a not found in tagMap")
                 return b""
 
             result += b"<idx:infl>"
@@ -381,10 +386,14 @@ class dictSupport(object):
                 position -= offset
             elif abyte > 0x13:
                 if mode == -1:
-                    print("Error: Unexpected first byte %i of inflection rule" % abyte)
+                    logger.debug(
+                        "Error: Unexpected first byte %i of inflection rule" % abyte
+                    )
                     return None
                 elif position == -1:
-                    print("Error: Unexpected first byte %i of inflection rule" % abyte)
+                    logger.debug(
+                        "Error: Unexpected first byte %i of inflection rule" % abyte
+                    )
                     return None
                 else:
                     if mode == 0x01:
@@ -400,7 +409,7 @@ class dictSupport(object):
                         deleted = byteArray.pop(position)
                         if bchr(deleted) != char:
                             if DEBUG_DICT:
-                                print(
+                                logger.debug(
                                     "0x03: %s %s %s %s"
                                     % (
                                         mainEntry,
@@ -409,14 +418,16 @@ class dictSupport(object):
                                         bchr(deleted),
                                     )
                                 )
-                            print("Error: Delete operation of inflection rule failed")
+                            logger.debug(
+                                "Error: Delete operation of inflection rule failed"
+                            )
                             return None
                     elif mode == 0x04:
                         # Delete at word start
                         deleted = byteArray.pop(position)
                         if bchr(deleted) != char:
                             if DEBUG_DICT:
-                                print(
+                                logger.debug(
                                     "0x03: %s %s %s %s"
                                     % (
                                         mainEntry,
@@ -425,10 +436,12 @@ class dictSupport(object):
                                         bchr(deleted),
                                     )
                                 )
-                            print("Error: Delete operation of inflection rule failed")
+                            logger.debug(
+                                "Error: Delete operation of inflection rule failed"
+                            )
                             return None
                     else:
-                        print(
+                        logger.debug(
                             "Error: Inflection rule mode %x is not implemented" % mode
                         )
                         return None
@@ -454,6 +467,8 @@ class dictSupport(object):
                 # Delete at word start
                 mode = abyte
             else:
-                print("Error: Inflection rule mode %x is not implemented" % abyte)
+                logger.debug(
+                    "Error: Inflection rule mode %x is not implemented" % abyte
+                )
                 return None
         return utf8_str(byteArray.tostring())

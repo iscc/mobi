@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from .compatibility_utils import PY2, bchr, bstr, bord
+from loguru import logger
 
 if PY2:
     range = xrange
@@ -44,9 +45,9 @@ class MobiIndex:
             tagSectionStart = idxhdr["len"]
             controlByteCount, tagTable = readTagSection(tagSectionStart, data)
             if self.DEBUG:
-                print("ControlByteCount is", controlByteCount)
-                print("IndexCount is", IndexCount)
-                print("TagTable: %s" % tagTable)
+                logger.debug("ControlByteCount is", controlByteCount)
+                logger.debug("IndexCount is", IndexCount)
+                logger.debug("TagTable: %s" % tagTable)
             for i in range(idx + 1, idx + 1 + IndexCount):
                 sect.setsectiondescription(
                     i, "{0} Extra {1:d} INDX section".format(label, i - idx)
@@ -56,7 +57,7 @@ class MobiIndex:
                 idxtPos = hdrinfo["start"]
                 entryCount = hdrinfo["count"]
                 if self.DEBUG:
-                    print(idxtPos, entryCount)
+                    logger.debug("%s %s" % (idxtPos, entryCount))
                 # loop through to build up the IDXT position starts
                 idxPositions = []
                 for j in range(entryCount):
@@ -81,14 +82,14 @@ class MobiIndex:
                     )
                     outtbl.append([text, tagMap])
                     if self.DEBUG:
-                        print(tagMap)
-                        print(text)
+                        logger.debug(tagMap)
+                        logger.debug(text)
         return outtbl, ctoc_text
 
     def parseINDXHeader(self, data):
         "read INDX header"
         if not data[:4] == b"INDX":
-            print("Warning: index section is not INDX")
+            logger.debug("Warning: index section is not INDX")
             return False
         words = (
             "len",
@@ -130,12 +131,12 @@ class MobiIndex:
             ordt2 = struct.unpack_from(bstr(">%dH" % oentries), data, op2 + 4)
 
         if self.DEBUG:
-            print("parsed INDX header:")
+            logger.debug("parsed INDX header:")
             for n in words:
                 print(
                     n, "%X" % header[n],
                 )
-            print("")
+            logger.debug("")
         return header, ordt1, ordt2
 
     def readCTOC(self, txtdata):
@@ -157,8 +158,8 @@ class MobiIndex:
             name = txtdata[offset : offset + ilen]
             offset += ilen
             if self.DEBUG:
-                print("name length is ", ilen)
-                print(idx_offs, name)
+                logger.debug("name length is %s" % ilen)
+                logger.debug("%s %s", (idx_offs, name))
             ctoc_data[idx_offs] = name
         return ctoc_data
 
@@ -251,7 +252,7 @@ def getTagMap(controlByteCount, tagTable, entryData, startPos, endPos):
             entryData[startPos + controlByteIndex : startPos + controlByteIndex + 1]
         )
         if 0:
-            print(
+            logger.debug(
                 "Control Byte Index %0x , Control Byte Value %0x"
                 % (controlByteIndex, cbyte)
             )
@@ -298,7 +299,7 @@ def getTagMap(controlByteCount, tagTable, entryData, startPos, endPos):
                 totalConsumed += consumed
                 values.append(data)
             if totalConsumed != valueBytes:
-                print(
+                logger.debug(
                     "Error: Should consume %s bytes, but consumed %s"
                     % (valueBytes, totalConsumed)
                 )
@@ -308,15 +309,15 @@ def getTagMap(controlByteCount, tagTable, entryData, startPos, endPos):
         # The last entry might have some zero padding bytes, so complain only if non zero bytes are left.
         for char in entryData[dataStart:endPos]:
             if bord(char) != 0:
-                print(
+                logger.debug(
                     "Warning: There are unprocessed index bytes left: %s"
                     % toHex(entryData[dataStart:endPos])
                 )
                 if 0:
-                    print("controlByteCount: %s" % controlByteCount)
-                    print("tagTable: %s" % tagTable)
-                    print("data: %s" % toHex(entryData[startPos:endPos]))
-                    print("tagHashMap: %s" % tagHashMap)
+                    logger.debug("controlByteCount: %s" % controlByteCount)
+                    logger.debug("tagTable: %s" % tagTable)
+                    logger.debug("data: %s" % toHex(entryData[startPos:endPos]))
+                    logger.debug("tagHashMap: %s" % tagHashMap)
                 break
 
     return tagHashMap

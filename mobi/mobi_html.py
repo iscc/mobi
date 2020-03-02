@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from .compatibility_utils import PY2, utf8_str
+from loguru import logger
 
 if PY2:
     range = xrange
@@ -30,7 +31,7 @@ class HTMLProcessor:
     def findAnchors(self, rawtext, indx_data, positionMap):
         # process the raw text
         # find anchors...
-        print("Find link anchors")
+        logger.debug("Find link anchors")
         link_pattern = re.compile(
             br"""<[^<>]+filepos=['"]{0,1}(\d+)[^<>]*>""", re.IGNORECASE
         )
@@ -49,7 +50,7 @@ class HTMLProcessor:
                 positionMap[position] = utf8_str('<a id="filepos%d" />' % position)
 
         # apply dictionary metadata and anchors
-        print("Insert data into html")
+        logger.debug("Insert data into html")
         pos = 0
         lastPos = len(rawtext)
         dataList = []
@@ -73,7 +74,7 @@ class HTMLProcessor:
         metadata = self.metadata
 
         # put in the hrefs
-        print("Insert hrefs into html")
+        logger.debug("Insert hrefs into html")
         # There doesn't seem to be a standard, so search as best as we can
 
         link_pattern = re.compile(
@@ -82,12 +83,12 @@ class HTMLProcessor:
         srctext = link_pattern.sub(br"""<a\1href="#filepos\2"\3>""", srctext)
 
         # remove empty anchors
-        print("Remove empty anchors from html")
+        logger.debug("Remove empty anchors from html")
         srctext = re.sub(br"<a\s*/>", br"", srctext)
         srctext = re.sub(br"<a\s*>\s*</a>", br"", srctext)
 
         # convert image references
-        print("Insert image references into html")
+        logger.debug("Insert image references into html")
         # split string into image tag pieces and other pieces
         image_pattern = re.compile(br"""(<img.*?>)""", re.IGNORECASE)
         image_index_pattern = re.compile(
@@ -103,7 +104,7 @@ class HTMLProcessor:
                 imageNumber = int(m.group(1))
                 imageName = rscnames[imageNumber - 1]
                 if imageName is None:
-                    print(
+                    logger.debug(
                         "Error: Referenced image %s was not recognized as a valid image"
                         % imageNumber
                     )
@@ -148,7 +149,7 @@ class XHTMLK8Processor:
         )
 
         parts = []
-        print("Building proper xhtml for each file")
+        logger.debug("Building proper xhtml for each file")
         for i in range(self.k8proc.getNumberOfParts()):
             part = self.k8proc.getPart(i)
             [partnum, dir, filename, beg, end, aidtext] = self.k8proc.getPartInfo(i)
@@ -274,7 +275,7 @@ class XHTMLK8Processor:
                             self.used[imageName] = "used"
                             tag = img_index_pattern.sub(replacement, tag, 1)
                         else:
-                            print(
+                            logger.debug(
                                 "Error: Referenced image %s was not recognized as a valid image in %s"
                                 % (imageNumber, tag)
                             )
@@ -297,7 +298,7 @@ class XHTMLK8Processor:
                         self.used[imageName] = "used"
                         tag = url_img_index_pattern.sub(replacement, tag, 1)
                     else:
-                        print(
+                        logger.debug(
                             "Error: Referenced image %s was not recognized as a valid image in %s"
                             % (imageNumber, tag)
                         )
@@ -309,7 +310,7 @@ class XHTMLK8Processor:
                     osep = m.group()[0:1]
                     csep = m.group()[-1:]
                     if fontName is None:
-                        print(
+                        logger.debug(
                             "Error: Referenced font %s was not recognized as a valid font in %s"
                             % (fontNumber, tag)
                         )
@@ -438,7 +439,7 @@ class XHTMLK8Processor:
                             self.used[imageName] = "used"
                             tag = img_index_pattern.sub(replacement, tag, 1)
                         else:
-                            print(
+                            logger.debug(
                                 "Error: Referenced image %s in style url was not recognized in %s"
                                 % (imageNumber, tag)
                             )
@@ -471,7 +472,7 @@ class XHTMLK8Processor:
                             self.used[imageName] = "used"
                             tag = img_index_pattern.sub(replacement, tag, 1)
                         else:
-                            print(
+                            logger.debug(
                                 "Error: Referenced image %s was not recognized as a valid image in %s"
                                 % (imageNumber, tag)
                             )

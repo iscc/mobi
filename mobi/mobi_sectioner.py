@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from .compatibility_utils import PY2, hexlify, bstr, bord, bchar
+from loguru import logger
 
 import datetime
 
@@ -68,9 +69,9 @@ class Sectionizer:
         return
 
     def dumpsectionsinfo(self):
-        print("Section     Offset  Length      UID Attribs Description")
+        logger.debug("Section     Offset  Length      UID Attribs Description")
         for i in range(self.num_sections):
-            print(
+            logger.debug(
                 "%3d %3X  0x%07X 0x%05X % 8d % 7d %s"
                 % (
                     i,
@@ -82,7 +83,7 @@ class Sectionizer:
                     self.sectiondescriptions[i],
                 )
             )
-        print(
+        logger.debug(
             "%3d %3X  0x%07X                          %s"
             % (
                 self.num_sections,
@@ -96,13 +97,15 @@ class Sectionizer:
         if section < len(self.sectiondescriptions):
             self.sectiondescriptions[section] = description
         else:
-            print("Section out of range: %d, description %s" % (section, description))
+            logger.debug(
+                "Section out of range: %d, description %s" % (section, description)
+            )
 
     def dumppalmheader(self):
-        print("Palm Database Header")
-        print("Database name: " + repr(self.palmheader[:32]))
+        logger.debug("Palm Database Header")
+        logger.debug("Database name: " + repr(self.palmheader[:32]))
         (dbattributes,) = struct.unpack_from(b">H", self.palmheader, 32)
-        print("Bitfield attributes: 0x%0X" % dbattributes,)
+        logger.debug("Bitfield attributes: 0x%0X" % dbattributes,)
         if dbattributes != 0:
             print(" (",)
             if dbattributes & 2:
@@ -120,48 +123,52 @@ class Sectionizer:
             print(")")
         else:
             print("")
-        print("File version: %d" % struct.unpack_from(b">H", self.palmheader, 34)[0])
+        logger.debug(
+            "File version: %d" % struct.unpack_from(b">H", self.palmheader, 34)[0]
+        )
         (dbcreation,) = struct.unpack_from(b">L", self.palmheader, 36)
-        print(
+        logger.debug(
             "Creation Date: "
             + str(datetimefrompalmtime(dbcreation))
             + (" (0x%0X)" % dbcreation)
         )
         (dbmodification,) = struct.unpack_from(b">L", self.palmheader, 40)
-        print(
+        logger.debug(
             "Modification Date: "
             + str(datetimefrompalmtime(dbmodification))
             + (" (0x%0X)" % dbmodification)
         )
         (dbbackup,) = struct.unpack_from(b">L", self.palmheader, 44)
         if dbbackup != 0:
-            print(
+            logger.debug(
                 "Backup Date: "
                 + str(datetimefrompalmtime(dbbackup))
                 + (" (0x%0X)" % dbbackup)
             )
-        print(
+        logger.debug(
             "Modification No.: %d" % struct.unpack_from(b">L", self.palmheader, 48)[0]
         )
-        print(
+        logger.debug(
             "App Info offset: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 52)[0]
         )
-        print(
+        logger.debug(
             "Sort Info offset: 0x%0X"
             % struct.unpack_from(b">L", self.palmheader, 56)[0]
         )
-        print(
+        logger.debug(
             "Type/Creator: %s/%s"
             % (repr(self.palmheader[60:64]), repr(self.palmheader[64:68]))
         )
-        print("Unique seed: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 68)[0])
+        logger.debug(
+            "Unique seed: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 68)[0]
+        )
         (expectedzero,) = struct.unpack_from(b">L", self.palmheader, 72)
         if expectedzero != 0:
-            print(
+            logger.debug(
                 "Should be zero but isn't: %d"
                 % struct.unpack_from(b">L", self.palmheader, 72)[0]
             )
-        print(
+        logger.debug(
             "Number of sections: %d" % struct.unpack_from(b">H", self.palmheader, 76)[0]
         )
         return

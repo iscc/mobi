@@ -3,6 +3,7 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from __future__ import unicode_literals, division, absolute_import, print_function
+from loguru import logger
 
 import struct
 
@@ -421,7 +422,7 @@ class mobi_split:
                 # print("n",n)
                 if n > 0 and n < lastimage:
                     lastimage = n - 1
-        print("First Image, last Image", firstimage, lastimage)
+        logger.debug("First Image, last Image %s %s" % (firstimage, lastimage))
 
         # Try to null out FONT and RES, but leave the (empty) PDB record so image refs remain valid
         for i in range(firstimage, lastimage):

@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 import os
+from loguru import logger
 
 __path__ = ["lib", os.path.dirname(os.path.realpath(__file__)), "kindleunpack"]
 
@@ -201,7 +202,7 @@ from .mobi_dict import dictSupport
 
 def processSRCS(i, files, rscnames, sect, data):
     # extract the source zip archive and save it.
-    print(
+    logger.debug(
         "File contains kindlegen source archive, extracting as %s"
         % KINDLEGENSRC_FILENAME
     )
@@ -245,7 +246,9 @@ def processPAGE(i, files, rscnames, sect, data, mh, pagemapproc):
 
 def processCMET(i, files, rscnames, sect, data):
     # extract the build log
-    print("File contains kindlegen build log, extracting as %s" % KINDLEGENLOG_FILENAME)
+    logger.debug(
+        "File contains kindlegen build log, extracting as %s" % KINDLEGENLOG_FILENAME
+    )
     srcname = os.path.join(files.outdir, KINDLEGENLOG_FILENAME)
     with open(pathof(srcname), "wb") as f:
         f.write(data[10:])
@@ -273,12 +276,14 @@ def processFONT(i, files, rscnames, sect, data, obfuscate_data, beg, rsc_ptr):
             b">LLLLL", data, 4
         )
     except:
-        print("Failed to extract font: {0:s} from section {1:d}".format(fontname, i))
+        logger.debug(
+            "Failed to extract font: {0:s} from section {1:d}".format(fontname, i)
+        )
         font_error = True
         ext = ".failed"
         pass
     if not font_error:
-        print("Extracting font:", fontname)
+        logger.debug("Extracting font:", fontname)
         font_data = data[dstart:]
         extent = len(font_data)
         extent = min(extent, 1040)
@@ -298,7 +303,7 @@ def processFONT(i, files, rscnames, sect, data, obfuscate_data, beg, rsc_ptr):
         elif hdr == b"OTTO":
             ext = ".otf"
         else:
-            print("Warning: unknown font header %s" % hexlify(hdr))
+            logger.debug("Warning: unknown font header %s" % hexlify(hdr))
         if (ext == ".ttf" or ext == ".otf") and (fflags & 0x0002):
             obfuscate_data.append(fontname + ext)
         fontname += ext
@@ -319,7 +324,9 @@ def processCRES(i, files, rscnames, sect, data, beg, rsc_ptr, use_hd):
     imgtype = get_image_type(None, data)
 
     if imgtype is None:
-        print("Warning: CRES Section %s does not contain a recognised resource" % i)
+        logger.debug(
+            "Warning: CRES Section %s does not contain a recognised resource" % i
+        )
         rscnames.append(None)
         sect.setsectiondescription(
             i, "Mysterious CRES data, first four bytes %s" % describe(data[0:4])
@@ -344,7 +351,7 @@ def processCRES(i, files, rscnames, sect, data, beg, rsc_ptr, use_hd):
     else:
         imgname = "HDimage%05d.%s" % (i, imgtype)
         imgdest = files.hdimgdir
-    print("Extracting HD image: {0:s} from section {1:d}".format(imgname, i))
+    logger.debug("Extracting HD image: {0:s} from section {1:d}".format(imgname, i))
     outimg = os.path.join(imgdest, imgname)
     with open(pathof(outimg), "wb") as f:
         f.write(data)
@@ -368,7 +375,7 @@ def processCONT(i, files, rscnames, sect, data):
         if DUMP:
             (cpage,) = struct.unpack_from(b">L", data, 12)
             contexth = data[48:]
-            print("\n\nContainer EXTH Dump")
+            logger.debug("\n\nContainer EXTH Dump")
             dump_contexth(cpage, contexth)
             fname = "CONT_Header%05d.dat" % i
             outname = os.path.join(files.outdir, fname)
@@ -382,8 +389,8 @@ def processkind(i, files, rscnames, sect, data):
     dt = data[0:12]
     if dt == b"kindle:embed":
         if DUMP:
-            print("\n\nHD Image Container Description String")
-            print(data)
+            logger.debug("\n\nHD Image Container Description String")
+            logger.debug(data)
         sect.setsectiondescription(i, "HD Image Container Description String")
         rscnames.append(None)
     return rscnames
@@ -394,7 +401,7 @@ def processRESC(i, files, rscnames, sect, data, k8resc):
     global DUMP
     if DUMP:
         rescname = "RESC%05d.dat" % i
-        print("Extracting Resource: ", rescname)
+        logger.debug("Extracting Resource: ", rescname)
         outrsc = os.path.join(files.outdir, rescname)
         with open(pathof(outrsc), "wb") as f:
             f.write(data)
@@ -402,7 +409,7 @@ def processRESC(i, files, rscnames, sect, data, k8resc):
         # parse the spine and metadata from RESC
         k8resc = K8RESCProcessor(data[16:], DUMP)
     else:  # except:
-        print("Warning: cannot extract information from RESC.")
+        logger.debug("Warning: cannot extract information from RESC.")
         k8resc = None
     rscnames.append(None)
     sect.setsectiondescription(i, "K8 RESC section")
@@ -414,7 +421,7 @@ def processImage(i, files, rscnames, sect, data, beg, rsc_ptr, cover_offset):
     # Extract an Image
     imgtype = get_image_type(None, data)
     if imgtype is None:
-        print("Warning: Section %s does not contain a recognised resource" % i)
+        logger.debug("Warning: Section %s does not contain a recognised resource" % i)
         rscnames.append(None)
         sect.setsectiondescription(
             i, "Mysterious Section, first four bytes %s" % describe(data[0:4])
@@ -434,7 +441,7 @@ def processImage(i, files, rscnames, sect, data, beg, rsc_ptr, cover_offset):
     imgname = "image%05d.%s" % (i, imgtype)
     if cover_offset is not None and i == beg + cover_offset:
         imgname = "cover%05d.%s" % (i, imgtype)
-    print("Extracting image: {0:s} from section {1:d}".format(imgname, i))
+    logger.debug("Extracting image: {0:s} from section {1:d}".format(imgname, i))
     outimg = os.path.join(files.imgdir, imgname)
     with open(pathof(outimg), "wb") as f:
         f.write(data)
@@ -455,7 +462,7 @@ def processPrintReplica(metadata, files, rscnames, mh):
             f.write(rawML)
 
     fileinfo = []
-    print("Print Replica ebook detected")
+    logger.debug("Print Replica ebook detected")
     try:
         (numTables,) = struct.unpack_from(b">L", rawML, 0x04)
         tableIndexOffset = 8 + 4 * numTables
@@ -482,7 +489,7 @@ def processPrintReplica(metadata, files, rscnames, mh):
                 with open(pathof(entryName), "wb") as f:
                     f.write(rawML[sectionOffset : (sectionOffset + sectionLength)])
     except Exception as e:
-        print("Error processing Print Replica: " + str(e))
+        logger.debug("Error processing Print Replica: " + str(e))
 
     fileinfo.append([None, "", files.getInputFileBasename() + ".pdf"])
     usedmap = {}
@@ -556,14 +563,14 @@ def processMobi8(
         with open(pathof(outpm), "wb") as f:
             f.write(pagemapxml.encode("utf-8"))
         if DUMP:
-            print(pagemapproc.getNames())
-            print(pagemapproc.getOffsets())
-            print("\n\nPage Map")
-            print(pagemapxml)
+            logger.debug(pagemapproc.getNames())
+            logger.debug(pagemapproc.getOffsets())
+            logger.debug("\n\nPage Map")
+            logger.debug(pagemapxml)
 
     # process the toc ncx
     # ncx map keys: name, pos, len, noffs, text, hlvl, kind, pos_fid, parent, child1, childn, num
-    print("Processing ncx / toc")
+    logger.debug("Processing ncx / toc")
     ncx = ncxExtract(mh, files)
     ncx_data = ncx.parseNCX()
     # extend the ncx data with filenames and proper internal idtags
@@ -576,7 +583,7 @@ def processMobi8(
         ncx_data[i] = ncxmap
 
     # convert the rawML to a set of xhtml files
-    print("Building an epub-like structure")
+    logger.debug("Building an epub-like structure")
     htmlproc = XHTMLK8Processor(rscnames, k8proc)
     usedmap = htmlproc.buildXHTML()
 
@@ -649,7 +656,7 @@ def processMobi8(
         nav.writeNAV(ncx_data, guidetext, metadata)
 
     # make an epub-like structure of it all
-    print("Creating an epub-like file")
+    logger.debug("Creating an epub-like file")
     files.makeEPUB(usedmap, obfuscate_data, uuid)
 
 
@@ -758,7 +765,7 @@ def processUnknownSections(mh, sect, files, K8Boundary):
     global TERMINATION_INDICATOR2
     global TERMINATION_INDICATOR3
     if DUMP:
-        print("Unpacking any remaining unknown records")
+        logger.debug("Unpacking any remaining unknown records")
     beg = mh.start
     end = sect.num_sections
     if beg < K8Boundary:
@@ -781,7 +788,9 @@ def processUnknownSections(mh, sect, files, K8Boundary):
                     outname = os.path.join(files.outdir, fname)
                     with open(pathof(outname), "wb") as f:
                         f.write(data)
-                    print("Extracting %s: %s from section %d" % (description, fname, i))
+                    logger.debug(
+                        "Extracting %s: %s from section %d" % (description, fname, i)
+                    )
                     description = description + ", extracting as %s" % fname
             else:
                 fname = "unknown%05d.dat" % i
@@ -792,7 +801,9 @@ def processUnknownSections(mh, sect, files, K8Boundary):
                     outname = os.path.join(files.outdir, fname)
                     with open(pathof(outname), "wb") as f:
                         f.write(data)
-                    print("Extracting %s: %s from section %d" % (description, fname, i))
+                    logger.debug(
+                        "Extracting %s: %s from section %d" % (description, fname, i)
+                    )
                     description = description + ", extracting as %s" % fname
             sect.setsectiondescription(i, description)
 
@@ -811,11 +822,11 @@ def process_all_mobi_headers(
         if mh.isK8():
             sect.setsectiondescription(mh.start, "KF8 Header")
             mhname = os.path.join(files.outdir, "header_K8.dat")
-            print("Processing K8 section of book...")
+            logger.debug("Processing K8 section of book...")
         elif mh.isPrintReplica():
             sect.setsectiondescription(mh.start, "Print Replica Header")
             mhname = os.path.join(files.outdir, "header_PR.dat")
-            print("Processing PrintReplica section of book...")
+            logger.debug("Processing PrintReplica section of book...")
         else:
             if mh.version == 0:
                 sect.setsectiondescription(
@@ -826,7 +837,9 @@ def process_all_mobi_headers(
                     mh.start, "Mobipocket {0:d} Header".format(mh.version)
                 )
             mhname = os.path.join(files.outdir, "header.dat")
-            print("Processing Mobipocket {0:d} section of book...".format(mh.version))
+            logger.debug(
+                "Processing Mobipocket {0:d} section of book...".format(mh.version)
+            )
 
         if DUMP:
             # write out raw mobi header data
@@ -844,7 +857,7 @@ def process_all_mobi_headers(
         # first handle all of the different resource sections:  images, resources, fonts, and etc
         # build up a list of image names to use to postprocess the ebook
 
-        print("Unpacking images, resources, fonts, etc")
+        logger.debug("Unpacking images, resources, fonts, etc")
         beg = mh.firstresource
         end = sect.num_sections
         if beg < K8Boundary:
@@ -869,7 +882,7 @@ def process_all_mobi_headers(
                     outname = os.path.join(files.outdir, fname)
                     with open(pathof(outname), "wb") as f:
                         f.write(data)
-                    print(
+                    logger.debug(
                         "Dumping section {0:d} type {1:s} to file {2:s} ".format(
                             i, unicode_str(type), outname
                         )
@@ -979,7 +992,7 @@ def unpackBook(
     if DUMP:
         sect.dumppalmheader()
     else:
-        print(
+        logger.debug(
             "Palm DB type: %s, %d sections."
             % (sect.ident.decode("utf-8"), sect.num_sections)
         )
@@ -993,7 +1006,7 @@ def unpackBook(
     K8Boundary = -1
 
     if mh.isK8():
-        print("Unpacking a KF8 book...")
+        logger.debug("Unpacking a KF8 book...")
         hasK8 = True
     else:
         # This is either a Mobipocket 7 or earlier, or a combi M7/KF8
@@ -1011,7 +1024,9 @@ def unpackBook(
                     K8Boundary = i
                     break
         if hasK8:
-            print("Unpacking a Combination M{0:d}/KF8 book...".format(mh.version))
+            logger.debug(
+                "Unpacking a Combination M{0:d}/KF8 book...".format(mh.version)
+            )
             if SPLIT_COMBO_MOBIS:
                 # if this is a combination mobi7-mobi8 file split them up
                 mobisplit = mobi_split(infile)
@@ -1027,7 +1042,7 @@ def unpackBook(
                     with open(pathof(outmobi8), "wb") as f:
                         f.write(mobisplit.getResult8())
         else:
-            print("Unpacking a Mobipocket {0:d} book...".format(mh.version))
+            logger.debug("Unpacking a Mobipocket {0:d} book...".format(mh.version))
 
     if hasK8:
         files.makeK8Struct()

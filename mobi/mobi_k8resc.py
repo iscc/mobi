@@ -13,6 +13,7 @@ else:
     dict_ = dict
 
 from .compatibility_utils import unicode_str
+from loguru import logger
 
 from .mobi_utils import fromBase32
 
@@ -67,7 +68,7 @@ class K8RESCProcessor(object):
             else:
                 self.resc_length = end_pos - start_pos
         if self.resc_length != resc_size:
-            print(
+            logger.debug(
                 "Warning: RESC section length({:d}bytes) does not match its size({:d}bytes).".format(
                     self.resc_length, resc_size
                 )
@@ -119,7 +120,9 @@ class K8RESCProcessor(object):
     def parseData(self):
         for prefix, tname, tattr, tcontent in self.resc_tag_iter():
             if self._debug:
-                print("   Parsing RESC: ", prefix, tname, tattr, tcontent)
+                logger.debug(
+                    "   Parsing RESC: %s %s %s %s" % (prefix, tname, tattr, tcontent)
+                )
             if tname == "package":
                 self.package_ver = tattr.get("version", "2.0")
                 package_prefix = tattr.get("prefix", "")

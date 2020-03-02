@@ -6,6 +6,7 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 
 import os
 from .unipath import pathof
+from loguru import logger
 
 
 import re
@@ -45,8 +46,8 @@ class ncxExtract:
         if self.ncxidx != 0xFFFFFFFF:
             outtbl, ctoc_text = self.mi.getIndexData(self.ncxidx, "NCX")
             if DEBUG_NCX:
-                print(ctoc_text)
-                print(outtbl)
+                logger.debug(ctoc_text)
+                logger.debug(outtbl)
             num = 0
             for [text, tagMap] in outtbl:
                 tmp = {
@@ -135,7 +136,7 @@ class ncxExtract:
                 print("Warning: missing INDX child entries", start, end, len(indx_data))
                 return ""
             if DEBUG_NCX:
-                print("recursINDX lvl %d from %d to %d" % (lvl, start, end))
+                logger.debug("recursINDX lvl %d from %d to %d" % (lvl, start, end))
             xml = ""
             if start <= 0:
                 start = 0
@@ -176,7 +177,7 @@ class ncxExtract:
     def writeNCX(self, metadata):
         # build the xml
         self.isNCX = True
-        print("Write ncx")
+        logger.debug("Write ncx")
         # htmlname = os.path.basename(self.files.outbase)
         # htmlname += '.html'
         htmlname = "book.html"
@@ -224,7 +225,7 @@ class ncxExtract:
                 print("Warning: missing INDX child entries", start, end, len(indx_data))
                 return ""
             if DEBUG_NCX:
-                print("recursINDX lvl %d from %d to %d" % (lvl, start, end))
+                logger.debug("recursINDX lvl %d from %d to %d" % (lvl, start, end))
             xml = ""
             if start <= 0:
                 start = 0
@@ -270,7 +271,7 @@ class ncxExtract:
     def writeK8NCX(self, ncx_data, metadata):
         # build the xml
         self.isNCX = True
-        print("Write K8 ncx")
+        logger.debug("Write K8 ncx")
         xml = self.buildK8NCX(
             ncx_data,
             metadata["Title"][0],

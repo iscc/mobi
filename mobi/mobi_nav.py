@@ -7,6 +7,7 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 from .compatibility_utils import unicode_str
 import os
 from .unipath import pathof
+from loguru import logger
 
 import re
 
@@ -103,7 +104,7 @@ class NAVProcessor(object):
         # recursive part
         def recursINDX(max_lvl=0, num=0, lvl=0, start=-1, end=-1):
             if start > len(indx_data) or end > len(indx_data):
-                print(
+                logger.debug(
                     "Warning (in buildTOC): missing INDX child entries",
                     start,
                     end,
@@ -111,7 +112,7 @@ class NAVProcessor(object):
                 )
                 return ""
             if DEBUG_NAV:
-                print(
+                logger.debug(
                     "recursINDX (in buildTOC) lvl %d from %d to %d" % (lvl, start, end)
                 )
             xhtml = ""
@@ -155,7 +156,7 @@ class NAVProcessor(object):
 
         data, max_lvl, num = recursINDX()
         if not len(indx_data) == num:
-            print(
+            logger.debug(
                 "Warning (in buildTOC): different number of entries in NCX",
                 len(indx_data),
                 num,
@@ -163,7 +164,7 @@ class NAVProcessor(object):
         return header + data + footer
 
     def buildNAV(self, ncx_data, guidetext, title, lang):
-        print("Building Navigation Document.")
+        logger.debug("Building Navigation Document.")
         if FORCE_DEFAULT_TITLE:
             title = DEFAULT_TITLE
         nav_header = ""
@@ -192,7 +193,7 @@ class NAVProcessor(object):
 
     def writeNAV(self, ncx_data, guidetext, metadata):
         # build the xhtml
-        # print("Write Navigation Document.")
+        # logger.debug("Write Navigation Document.")
         xhtml = self.buildNAV(
             ncx_data, guidetext, metadata.get("Title")[0], metadata.get("Language")[0]
         )

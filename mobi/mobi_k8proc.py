@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from .compatibility_utils import PY2, bstr, utf8_str
+from loguru import logger
 
 if PY2:
     range = xrange
@@ -102,14 +103,14 @@ class K8Processor:
                 )[::2] + (mh.rawSize,)
                 sect.setsectiondescription(self.fdst, "KF8 FDST INDX")
                 if self.DEBUG:
-                    print("\nFDST Section Map:  %d sections" % num_sections)
+                    logger.debug("\nFDST Section Map:  %d sections" % num_sections)
                     for j in range(num_sections):
-                        print(
+                        logger.debug(
                             "Section %d: 0x%08X - 0x%08X"
                             % (j, self.fdsttbl[j], self.fdsttbl[j + 1])
                         )
             else:
-                print("\nError: K8 Mobi with Missing FDST info")
+                logger.debug("\nError: K8 Mobi with Missing FDST info")
 
         # read/process skeleton index info to create the skeleton table
         skeltbl = []
@@ -129,12 +130,12 @@ class K8Processor:
                 fileptr += 1
         self.skeltbl = skeltbl
         if self.DEBUG:
-            print("\nSkel Table:  %d entries" % len(self.skeltbl))
-            print(
+            logger.debug("\nSkel Table:  %d entries" % len(self.skeltbl))
+            logger.debug(
                 "table: filenum, skeleton name, frag tbl record count, start position, length"
             )
             for j in range(len(self.skeltbl)):
-                print(self.skeltbl[j])
+                logger.debug(self.skeltbl[j])
 
         # read/process the fragment index to create the fragment table
         fragtbl = []
@@ -161,12 +162,12 @@ class K8Processor:
                 )
         self.fragtbl = fragtbl
         if self.DEBUG:
-            print("\nFragment Table: %d entries" % len(self.fragtbl))
-            print(
+            logger.debug("\nFragment Table: %d entries" % len(self.fragtbl))
+            logger.debug(
                 "table: file position, link id text, file num, sequence number, start position, length"
             )
             for j in range(len(self.fragtbl)):
-                print(self.fragtbl[j])
+                logger.debug(self.fragtbl[j])
 
         # read / process guide index for guide elements of opf
         guidetbl = []
@@ -192,10 +193,10 @@ class K8Processor:
                 guidetbl.append([ref_type, ref_title, fileno])
         self.guidetbl = guidetbl
         if self.DEBUG:
-            print("\nGuide Table: %d entries" % len(self.guidetbl))
-            print("table: ref_type, ref_title, fragtbl entry number")
+            logger.debug("\nGuide Table: %d entries" % len(self.guidetbl))
+            logger.debug("table: ref_type, ref_title, fragtbl entry number")
             for j in range(len(self.guidetbl)):
-                print(self.guidetbl[j])
+                logger.debug(self.guidetbl[j])
 
     def buildParts(self, rawML):
         # now split the rawML into its flow pieces
@@ -213,7 +214,7 @@ class K8Processor:
         # *without* destroying any file position information needed for later href processing
         # and create final list of file separation start: stop points and etc in partinfo
         if self.DEBUG:
-            print("\nRebuilding flow piece 0: the main body of the ebook")
+            logger.debug("\nRebuilding flow piece 0: the main body of the ebook")
         self.parts = []
         self.partinfo = []
         fragptr = 0
@@ -241,7 +242,7 @@ class K8Processor:
                 ):
                     # There is an incomplete tag in either the head or tail.
                     # This can happen for some badly formed KF8 files
-                    print(
+                    logger.debug(
                         "The fragment table for %s has incorrect insert position. Calculating manually."
                         % skelname
                     )
@@ -329,17 +330,17 @@ class K8Processor:
             self.flowinfo.append([ptype, pformat, pdir, fname])
 
         if self.DEBUG:
-            print("\nFlow Map:  %d entries" % len(self.flowinfo))
+            logger.debug("\nFlow Map:  %d entries" % len(self.flowinfo))
             for fi in self.flowinfo:
-                print(fi)
-            print("\n")
+                logger.debug(fi)
+            logger.debug("\n")
 
-            print(
+            logger.debug(
                 "\nXHTML File Part Position Information: %d entries"
                 % len(self.partinfo)
             )
             for pi in self.partinfo:
-                print(pi)
+                logger.debug(pi)
 
         if False:  # self.Debug:
             # dump all of the locations of the aid tags used in TEXT
@@ -348,7 +349,7 @@ class K8Processor:
             #    [^>]* means match any amount of chars except for  '>' char
             #    [^'"] match any amount of chars except for the quote character
             #    \s* means match any amount of whitespace
-            print("\npositions of all aid= pieces")
+            logger.debug("\npositions of all aid= pieces")
             id_pattern = re.compile(
                 br"""<[^>]*\said\s*=\s*['"]([^'"]*)['"][^>]*>""", re.IGNORECASE
             )
@@ -356,11 +357,11 @@ class K8Processor:
                 [filename, partnum, start, end] = self.getFileInfo(m.start())
                 [seqnum, idtext] = self.getFragTblInfo(m.start())
                 value = fromBase32(m.group(1))
-                print(
+                logger.debug(
                     "  aid: %s value: %d at: %d -> part: %d, start: %d, end: %d"
                     % (m.group(1), value, m.start(), partnum, start, end)
                 )
-                print("       %s  fragtbl entry %d" % (idtext, seqnum))
+                logger.debug("       %s  fragtbl entry %d" % (idtext, seqnum))
 
         return
 
@@ -438,7 +439,7 @@ class K8Processor:
         # find the first tag with a named anchor (name or id attribute) before pos
         fname, pn, skelpos, skelend = self.getFileInfo(pos)
         if pn is None and skelpos is None:
-            print("Error: getIDTag - no file contains ", pos)
+            logger.debug("Error: getIDTag - no file contains %s" % pos)
         textblock = self.parts[pn]
         npos = pos - skelpos
         # if npos inside a tag then search all text before the its end of tag marker
@@ -531,7 +532,7 @@ class K8Processor:
         # into a tag look for the next ending tag "/>" or "</" and start your search from there.
         fname, pn, skelpos, skelend = self.getFileInfo(pos)
         if pn is None and skelpos is None:
-            print("Error: getIDTag - no file contains ", pos)
+            logger.debug("Error: getIDTag - no file contains %s" % pos)
         textblock = self.parts[pn]
         npos = pos - skelpos
         # if npos inside a tag then search all text before next ending tag
