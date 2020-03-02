@@ -1,3 +1,7 @@
-# mobi - lib for unpacking mobi files
+# mobi - library for unpacking mobi files
 
-work in progress ...
+[![Version](https://img.shields.io/pypi/v/mobi.svg)](https://pypi.python.org/pypi/mobi/)
+[![Downloads](https://pepy.tech/badge/mobi)](https://pepy.tech/project/mobi)
+
+> A fork of [KindleUnpack](https://github.com/kevinhendricks/KindleUnpack) which removes the GUI part and makes it available as a python library via [PyPi](https://pypi.org/project/mobi/) for easy unpacking of mobi files.
+
