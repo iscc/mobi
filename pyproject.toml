@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mobi"
-version = "0.2.0"
+version = "0.3.0"
 description = "unpack unencrypted mobi files"
 authors = ["Titusz Pan <tp@py7.de>"]
 license = "GPL-3.0-only"
@@ -10,7 +10,7 @@ repository = "https://github.com/iscc/mobi"
 keywords = ["mobi", "mobipocket", "unpack", "extract", "text"]
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
 ]
 
 [tool.poetry.scripts]
@@ -18,7 +18,7 @@ mobiunpack = 'mobi.kindleunpack:main'
 
 [tool.poetry.dependencies]
 python = "^3.6"
-loguru = "^0.4.1"
+loguru = "^0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5"

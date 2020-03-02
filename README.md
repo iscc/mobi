@@ -12,8 +12,11 @@
 ```python
 import mobi
 
-tempdir, epub_filepath = mobi.extract("mybook.mobi")
+tempdir, filepath = mobi.extract("mybook.mobi")
 ```
+
+'tempdir' is the path where the mobi is unpacked
+'filepath' is the path to either an epub, html or pdf file depending on the mobi type 
 
 | NOTE: You are responsible to delete the generated tempdir! |
 | --- |
@@ -48,6 +51,12 @@ Options:
     -d                 dump headers and other info to output and extra files
     -r                 write raw data to the output folder
 ```
+
+### [0.3.0] - 2020-03-02
+
+- Add support for mobi7 only files
+- Add experimental support for mobi print replica files
+
 
 ### [0.2.0] - 2020-03-02
 

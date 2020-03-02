@@ -1,0 +1,3 @@
+*.mobi
+*.azw4
+!demo.mobi # Except for demo.mobi

@@ -1,2 +1,6 @@
-__version__ = "0.2.0"
+import os
+
+os.environ["LOGURU_AUTOINIT"] = "False"
 from mobi.extract import extract
+
+__version__ = "0.3.0"
