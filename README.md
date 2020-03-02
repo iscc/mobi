@@ -56,6 +56,7 @@ Options:
 
 - Add support for mobi7 only files
 - Add experimental support for mobi print replica files
+- Add support for file-like objects
 
 
 ### [0.2.0] - 2020-03-02
