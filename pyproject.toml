@@ -5,7 +5,7 @@ description = "unpack unencrypted mobi files"
 authors = ["Titusz Pan <tp@py7.de>"]
 license = "GPL-3.0-only"
 readme = "README.md"
-homepage = "https://github/iscc/mobi"
+homepage = "https://github.com/iscc/mobi"
 repository = "https://github.com/iscc/mobi"
 keywords = ["mobi", "mobipocket", "unpack", "extract", "text"]
 
