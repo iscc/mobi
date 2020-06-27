@@ -52,6 +52,10 @@ Options:
     -r                 write raw data to the output folder
 ```
 
+### [0.3.1] - 2020-06-27
+- Fix pypi link
+- Update dependencies
+
 ### [0.3.0] - 2020-03-02
 
 - Add support for mobi7 only files

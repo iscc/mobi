@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mobi"
-version = "0.3.0"
+version = "0.3.1"
 description = "unpack unencrypted mobi files"
 authors = ["Titusz Pan <tp@py7.de>"]
 license = "GPL-3.0-only"
