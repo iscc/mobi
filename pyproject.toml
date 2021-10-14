@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mobi"
-version = "0.3.1"
+version = "0.3.2"
 description = "unpack unencrypted mobi files"
 authors = ["Titusz Pan <tp@py7.de>"]
 license = "GPL-3.0-only"
@@ -18,7 +18,7 @@ mobiunpack = 'mobi.kindleunpack:main'
 
 [tool.poetry.dependencies]
 python = "^3.6"
-loguru = "^0.4"
+loguru = "^0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5"

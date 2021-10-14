@@ -52,6 +52,9 @@ Options:
     -r                 write raw data to the output folder
 ```
 
+### [0.3.2] - 2021-10-14
+- Update dependencies
+
 ### [0.3.1] - 2020-06-27
 - Fix pypi link
 - Update dependencies
