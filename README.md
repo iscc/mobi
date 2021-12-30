@@ -52,6 +52,9 @@ Options:
     -r                 write raw data to the output folder
 ```
 
+### [0.3.3] - Unreleased
+- Add GitHub build workfow
+
 ### [0.3.2] - 2021-10-14
 - Update dependencies
 
