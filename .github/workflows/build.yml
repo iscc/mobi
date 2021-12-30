@@ -19,6 +19,9 @@ jobs:
         with:
           poetry-version: 1.1.12
 
+      - name: Downgrade buggy virtualenv
+        run: python -m pip install virtualenv==20.10.0 --force-reinstall
+
       - name: Install Dependencies
         run: poetry install
 
