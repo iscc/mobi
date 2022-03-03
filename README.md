@@ -52,8 +52,10 @@ Options:
     -r                 write raw data to the output folder
 ```
 
-### [0.3.3] - Unreleased
+### [0.3.3] - 2022-03-03
 - Add GitHub build workfow
+- Updated dependencies
+- Rmoved python 3.6 support (EOL)
 
 ### [0.3.2] - 2021-10-14
 - Update dependencies
