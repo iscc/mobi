@@ -17,13 +17,14 @@ classifiers = [
 mobiunpack = 'mobi.kindleunpack:main'
 
 [tool.poetry.dependencies]
-python = "^3.6"
-loguru = "^0.5"
+python = ">=3.7"
+loguru = "^0.6"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5"
-black = { version = "^19.10b0", python = "^3.6" }
+pytest = "^7.0"
+black = "^22.1"
+
 
 [build-system]
-requires = ["poetry>=1.0.5"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
+build-backend = "poetry.core.masonry.api"
