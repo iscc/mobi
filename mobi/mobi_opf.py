@@ -189,7 +189,7 @@ class OPFProcessor(object):
             @param tag: The opf tag corresponds to the metadata value.
             ###@param ids: The ids in tags for refines property of epub3.
             @param attrib: The extra attibute for refines or opf prefixs.
-           """
+            """
             if key in metadata:
                 for i, value in enumerate(metadata[key]):
                     closingTag = tag.split(" ")[0]

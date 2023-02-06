@@ -33,7 +33,7 @@ class HTMLProcessor:
         # find anchors...
         logger.debug("Find link anchors")
         link_pattern = re.compile(
-            br"""<[^<>]+filepos=['"]{0,1}(\d+)[^<>]*>""", re.IGNORECASE
+            rb"""<[^<>]+filepos=['"]{0,1}(\d+)[^<>]*>""", re.IGNORECASE
         )
         # TEST NCX: merge in filepos from indx
         pos_links = [int(m.group(1)) for m in link_pattern.finditer(rawtext)]
@@ -78,21 +78,21 @@ class HTMLProcessor:
         # There doesn't seem to be a standard, so search as best as we can
 
         link_pattern = re.compile(
-            br"""<a([^>]*?)filepos=['"]{0,1}0*(\d+)['"]{0,1}([^>]*?)>""", re.IGNORECASE
+            rb"""<a([^>]*?)filepos=['"]{0,1}0*(\d+)['"]{0,1}([^>]*?)>""", re.IGNORECASE
         )
-        srctext = link_pattern.sub(br"""<a\1href="#filepos\2"\3>""", srctext)
+        srctext = link_pattern.sub(rb"""<a\1href="#filepos\2"\3>""", srctext)
 
         # remove empty anchors
         logger.debug("Remove empty anchors from html")
-        srctext = re.sub(br"<a\s*/>", br"", srctext)
-        srctext = re.sub(br"<a\s*>\s*</a>", br"", srctext)
+        srctext = re.sub(rb"<a\s*/>", rb"", srctext)
+        srctext = re.sub(rb"<a\s*>\s*</a>", rb"", srctext)
 
         # convert image references
         logger.debug("Insert image references into html")
         # split string into image tag pieces and other pieces
-        image_pattern = re.compile(br"""(<img.*?>)""", re.IGNORECASE)
+        image_pattern = re.compile(rb"""(<img.*?>)""", re.IGNORECASE)
         image_index_pattern = re.compile(
-            br"""recindex=['"]{0,1}([0-9]+)['"]{0,1}""", re.IGNORECASE
+            rb"""recindex=['"]{0,1}([0-9]+)['"]{0,1}""", re.IGNORECASE
         )
         srcpieces = image_pattern.split(srctext)
         srctext = self.srctext = None
@@ -133,7 +133,6 @@ class XHTMLK8Processor:
         self.used = {}
 
     def buildXHTML(self):
-
         # first need to update all links that are internal which
         # are based on positions within the xhtml files **BEFORE**
         # cutting and pasting any pieces into the xhtml text files
@@ -143,9 +142,9 @@ class XHTMLK8Processor:
         #       YYYYYYYYYYYY is a base32 number you add to the divtbl insertpos to get final position
 
         # pos:fid pattern
-        posfid_pattern = re.compile(br"""(<a.*?href=.*?>)""", re.IGNORECASE)
+        posfid_pattern = re.compile(rb"""(<a.*?href=.*?>)""", re.IGNORECASE)
         posfid_index_pattern = re.compile(
-            br"""['"]kindle:pos:fid:([0-9|A-V]+):off:([0-9|A-V]+).*?["']"""
+            rb"""['"]kindle:pos:fid:([0-9|A-V]+):off:([0-9|A-V]+).*?["']"""
         )
 
         parts = []
@@ -178,9 +177,9 @@ class XHTMLK8Processor:
         # we can safely remove all of the Kindlegen generated aid tags
         # change aid ids that are in k8proc.linked_aids to xhtml ids
         find_tag_with_aid_pattern = re.compile(
-            br"""(<[^>]*\said\s*=[^>]*>)""", re.IGNORECASE
+            rb"""(<[^>]*\said\s*=[^>]*>)""", re.IGNORECASE
         )
-        within_tag_aid_position_pattern = re.compile(br"""\said\s*=['"]([^'"]*)['"]""")
+        within_tag_aid_position_pattern = re.compile(rb"""\said\s*=['"]([^'"]*)['"]""")
         for i in range(len(parts)):
             part = parts[i]
             srcpieces = find_tag_with_aid_pattern.split(part)
@@ -203,10 +202,10 @@ class XHTMLK8Processor:
         # we can safely replace all of the Kindlegen generated data-AmznPageBreak tags
         # with page-break-after style patterns
         find_tag_with_AmznPageBreak_pattern = re.compile(
-            br"""(<[^>]*\sdata-AmznPageBreak=[^>]*>)""", re.IGNORECASE
+            rb"""(<[^>]*\sdata-AmznPageBreak=[^>]*>)""", re.IGNORECASE
         )
         within_tag_AmznPageBreak_position_pattern = re.compile(
-            br"""\sdata-AmznPageBreak=['"]([^'"]*)['"]"""
+            rb"""\sdata-AmznPageBreak=['"]([^'"]*)['"]"""
         )
         for i in range(len(parts)):
             part = parts[i]
@@ -232,29 +231,29 @@ class XHTMLK8Processor:
         flowinfo.append([None, None, None, None])
 
         # regular expression search patterns
-        img_pattern = re.compile(br"""(<[img\s|image\s][^>]*>)""", re.IGNORECASE)
+        img_pattern = re.compile(rb"""(<[img\s|image\s][^>]*>)""", re.IGNORECASE)
         img_index_pattern = re.compile(
-            br"""[('"]kindle:embed:([0-9|A-V]+)[^'"]*['")]""", re.IGNORECASE
+            rb"""[('"]kindle:embed:([0-9|A-V]+)[^'"]*['")]""", re.IGNORECASE
         )
 
-        tag_pattern = re.compile(br"""(<[^>]*>)""")
+        tag_pattern = re.compile(rb"""(<[^>]*>)""")
         flow_pattern = re.compile(
-            br"""['"]kindle:flow:([0-9|A-V]+)\?mime=([^'"]+)['"]""", re.IGNORECASE
+            rb"""['"]kindle:flow:([0-9|A-V]+)\?mime=([^'"]+)['"]""", re.IGNORECASE
         )
 
-        url_pattern = re.compile(br"""(url\(.*?\))""", re.IGNORECASE)
+        url_pattern = re.compile(rb"""(url\(.*?\))""", re.IGNORECASE)
         url_img_index_pattern = re.compile(
-            br"""[('"]kindle:embed:([0-9|A-V]+)\?mime=image/[^\)]*["')]""",
+            rb"""[('"]kindle:embed:([0-9|A-V]+)\?mime=image/[^\)]*["')]""",
             re.IGNORECASE,
         )
         font_index_pattern = re.compile(
-            br"""[('"]kindle:embed:([0-9|A-V]+)["')]""", re.IGNORECASE
+            rb"""[('"]kindle:embed:([0-9|A-V]+)["')]""", re.IGNORECASE
         )
         url_css_index_pattern = re.compile(
-            br"""kindle:flow:([0-9|A-V]+)\?mime=text/css[^\)]*""", re.IGNORECASE
+            rb"""kindle:flow:([0-9|A-V]+)\?mime=text/css[^\)]*""", re.IGNORECASE
         )
         url_svg_image_pattern = re.compile(
-            br"""kindle:flow:([0-9|A-V]+)\?mime=image/svg\+xml[^\)]*""", re.IGNORECASE
+            rb"""kindle:flow:([0-9|A-V]+)\?mime=image/svg\+xml[^\)]*""", re.IGNORECASE
         )
 
         for i in range(1, self.k8proc.getNumberOfFlows()):
@@ -369,9 +368,9 @@ class XHTMLK8Processor:
 
         # Handle the flow items in the XHTML text pieces
         # kindle:flow:XXXX?mime=YYYY/ZZZ (used for style sheets, svg images, etc)
-        tag_pattern = re.compile(br"""(<[^>]*>)""")
+        tag_pattern = re.compile(rb"""(<[^>]*>)""")
         flow_pattern = re.compile(
-            br"""['"]kindle:flow:([0-9|A-V]+)\?mime=([^'"]+)['"]""", re.IGNORECASE
+            rb"""['"]kindle:flow:([0-9|A-V]+)\?mime=([^'"]+)['"]""", re.IGNORECASE
         )
         for i in range(len(parts)):
             part = parts[i]
@@ -412,10 +411,10 @@ class XHTMLK8Processor:
 
         # Handle any embedded raster images links in style= attributes urls
         style_pattern = re.compile(
-            br"""(<[a-zA-Z0-9]+\s[^>]*style\s*=\s*[^>]*>)""", re.IGNORECASE
+            rb"""(<[a-zA-Z0-9]+\s[^>]*style\s*=\s*[^>]*>)""", re.IGNORECASE
         )
         img_index_pattern = re.compile(
-            br"""[('"]kindle:embed:([0-9|A-V]+)[^'"]*['")]""", re.IGNORECASE
+            rb"""[('"]kindle:embed:([0-9|A-V]+)[^'"]*['")]""", re.IGNORECASE
         )
 
         for i in range(len(parts)):
@@ -451,8 +450,8 @@ class XHTMLK8Processor:
 
         # Handle any embedded raster images links in the xhtml text
         # kindle:embed:XXXX?mime=image/gif (png, jpeg, etc) (used for images)
-        img_pattern = re.compile(br"""(<[img\s|image\s][^>]*>)""", re.IGNORECASE)
-        img_index_pattern = re.compile(br"""['"]kindle:embed:([0-9|A-V]+)[^'"]*['"]""")
+        img_pattern = re.compile(rb"""(<[img\s|image\s][^>]*>)""", re.IGNORECASE)
+        img_index_pattern = re.compile(rb"""['"]kindle:embed:([0-9|A-V]+)[^'"]*['"]""")
 
         for i in range(len(parts)):
             part = parts[i]
@@ -486,9 +485,9 @@ class XHTMLK8Processor:
         #   in svg tags replace "perserveaspectratio" attributes with "perserveAspectRatio"
         #   in svg tags replace "viewbox" attributes with "viewBox"
         #   in <li> remove value="XX" attributes since these are illegal
-        tag_pattern = re.compile(br"""(<[^>]*>)""")
+        tag_pattern = re.compile(rb"""(<[^>]*>)""")
         li_value_pattern = re.compile(
-            br"""\svalue\s*=\s*['"][^'"]*['"]""", re.IGNORECASE
+            rb"""\svalue\s*=\s*['"][^'"]*['"]""", re.IGNORECASE
         )
 
         for i in range(len(parts)):

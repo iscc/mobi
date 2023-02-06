@@ -46,6 +46,7 @@ _guide_types = [
     b"text",
 ]
 
+
 # locate beginning and ending positions of tag with specific aid attribute
 def locate_beg_end_of_tag(ml, aid):
     pattern = utf8_str(r"""<[^>]*\said\s*=\s*['"]%s['"][^>]*>""" % aid)
@@ -290,8 +291,8 @@ class K8Processor:
         # there may be other sorts of pieces stored here but until we see one
         # in the wild to reverse engineer we won't be able to tell
         self.flowinfo.append([None, None, None, None])
-        svg_tag_pattern = re.compile(br"""(<svg[^>]*>)""", re.IGNORECASE)
-        image_tag_pattern = re.compile(br"""(<image[^>]*>)""", re.IGNORECASE)
+        svg_tag_pattern = re.compile(rb"""(<svg[^>]*>)""", re.IGNORECASE)
+        image_tag_pattern = re.compile(rb"""(<image[^>]*>)""", re.IGNORECASE)
         for j in range(1, len(self.flows)):
             flowpart = self.flows[j]
             nstr = "%04d" % j
@@ -351,7 +352,7 @@ class K8Processor:
             #    \s* means match any amount of whitespace
             logger.debug("\npositions of all aid= pieces")
             id_pattern = re.compile(
-                br"""<[^>]*\said\s*=\s*['"]([^'"]*)['"][^>]*>""", re.IGNORECASE
+                rb"""<[^>]*\said\s*=\s*['"]([^'"]*)['"][^>]*>""", re.IGNORECASE
             )
             for m in re.finditer(id_pattern, rawML):
                 [filename, partnum, start, end] = self.getFileInfo(m.start())
@@ -455,12 +456,12 @@ class K8Processor:
         #    \s* means match any amount of whitespace
         textblock = textblock[0:npos]
         id_pattern = re.compile(
-            br"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
+            rb"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
         )
         name_pattern = re.compile(
-            br"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
+            rb"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
         )
-        aid_pattern = re.compile(br"""<[^>]+\s(?:aid|AID)\s*=\s*['"]([^'"]+)['"]""")
+        aid_pattern = re.compile(rb"""<[^>]+\s(?:aid|AID)\s*=\s*['"]([^'"]+)['"]""")
         for tag in reverse_tag_iter(textblock):
             # any ids in the body should default to top of file
             if tag[0:6] == b"<body ":
@@ -559,10 +560,10 @@ class K8Processor:
         #    \s* means match any amount of whitespace
         textblock = textblock[0:npos]
         id_pattern = re.compile(
-            br"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
+            rb"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
         )
         name_pattern = re.compile(
-            br"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
+            rb"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
         )
         for tag in reverse_tag_iter(textblock):
             # any ids in the body should default to top of file

@@ -134,7 +134,8 @@ class MobiIndex:
             logger.debug("parsed INDX header:")
             for n in words:
                 print(
-                    n, "%X" % header[n],
+                    n,
+                    "%X" % header[n],
                 )
             logger.debug("")
         return header, ordt1, ordt2

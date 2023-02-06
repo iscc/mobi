@@ -122,9 +122,7 @@ def get_image_size(imgname, imgdata=None):
 # XXX experimental
 class CoverProcessor(object):
 
-    """Create a cover page.
-
-    """
+    """Create a cover page."""
 
     def __init__(self, files, metadata, rscnames, imgname=None, imgdata=None):
         self.files = files

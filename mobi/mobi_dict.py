@@ -127,7 +127,8 @@ class dictSupport(object):
             logger.debug("parsed INDX header:")
             for key in header:
                 logger.debug(
-                    key, "%x" % header[key],
+                    key,
+                    "%x" % header[key],
                 )
             logger.debug("\n")
         return header, ordt1, ordt2
@@ -333,7 +334,6 @@ class dictSupport(object):
             result += b"<idx:infl>"
 
             for i in range(len(tagMap[0x05])):
-
                 # Get name of inflection rule.
                 value = tagMap[0x05][i]
                 consumed, textLength = getVariableWidthValue(inflectionNames, value)

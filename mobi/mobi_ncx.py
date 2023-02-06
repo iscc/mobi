@@ -86,7 +86,8 @@ class ncxExtract:
                 if DEBUG_NCX:
                     print("record number: ", num)
                     print(
-                        "name: ", tmp["name"],
+                        "name: ",
+                        tmp["name"],
                     )
                     print("position", tmp["pos"], " length: ", tmp["len"])
                     print("text: ", tmp["text"])

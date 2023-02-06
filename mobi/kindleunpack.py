@@ -471,9 +471,10 @@ def processPrintReplica(metadata, files, rscnames, mh):
         for i in range(numTables):
             (sectionCount,) = struct.unpack_from(b">L", rawML, 0x08 + 4 * i)
             for j in range(sectionCount):
-                sectionOffset, sectionLength, = struct.unpack_from(
-                    b">LL", rawML, tableIndexOffset
-                )
+                (
+                    sectionOffset,
+                    sectionLength,
+                ) = struct.unpack_from(b">LL", rawML, tableIndexOffset)
                 tableIndexOffset += 8
                 if j == 0:
                     entryName = os.path.join(
@@ -705,7 +706,7 @@ def processMobi7(mh, metadata, sect, files, rscnames):
     # no pagemap support for older mobis
     # pagemapxml = None
     guidematch = re.search(
-        br"""<guide>(.*)</guide>""", srctext, re.IGNORECASE + re.DOTALL
+        rb"""<guide>(.*)</guide>""", srctext, re.IGNORECASE + re.DOTALL
     )
     if guidematch:
         guidetext = guidematch.group(1)
@@ -717,20 +718,20 @@ def processMobi7(mh, metadata, sect, files, rscnames):
         guidetext = guidetext.replace(b" TYPE=", b" type=")
         # reference must be a self-closing tag
         # and any href must be replaced with filepos information
-        ref_tag_pattern = re.compile(br"""(<reference [^>]*>)""", re.IGNORECASE)
+        ref_tag_pattern = re.compile(rb"""(<reference [^>]*>)""", re.IGNORECASE)
         guidepieces = ref_tag_pattern.split(guidetext)
         for i in range(1, len(guidepieces), 2):
             reftag = guidepieces[i]
             # remove any href there now to replace with filepos
-            reftag = re.sub(br"""href\s*=[^'"]*['"][^'"]*['"]""", b"", reftag)
+            reftag = re.sub(rb"""href\s*=[^'"]*['"][^'"]*['"]""", b"", reftag)
             # make sure the reference tag ends properly
             if not reftag.endswith(b"/>"):
                 reftag = reftag[0:-1] + b"/>"
                 guidepieces[i] = reftag
         guidetext = b"".join(guidepieces)
-        replacetext = br'''href="''' + utf8_str(fileinfo[0][2]) + br'''#filepos\1"'''
+        replacetext = rb'''href="''' + utf8_str(fileinfo[0][2]) + rb'''#filepos\1"'''
         guidetext = re.sub(
-            br"""filepos=['"]{0,1}0*(\d+)['"]{0,1}""", replacetext, guidetext
+            rb"""filepos=['"]{0,1}0*(\d+)['"]{0,1}""", replacetext, guidetext
         )
         guidetext += b"\n"
 

@@ -123,7 +123,6 @@ if PY3:
     def bchar(s):
         return bytes([s])
 
-
 else:
 
     def bchr(s):
@@ -153,7 +152,6 @@ if PY3:
     def lfilter(*args, **kwargs):
         return list(filter(*args, **kwargs))
 
-
 else:
     import __builtin__
 
@@ -182,6 +180,7 @@ def hexlify(bdata):
 # Python 2.X allows the pattern to be any type and converts it to match the data
 # and returns the same type as the data
 
+
 # convert string to be utf-8 encoded
 def utf8_str(p, enc="utf-8"):
     if p is None:
@@ -207,6 +206,7 @@ URL_SAFE = set(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789" "#" "_.-/~"
 )
 IRI_UNSAFE = ASCII_CHARS - URL_SAFE
+
 
 # returns a quoted IRI (not a URI)
 def quoteurl(href):

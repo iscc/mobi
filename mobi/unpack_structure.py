@@ -105,7 +105,7 @@ class fileNames:
         if isinstance(uid, text_type):
             uid = uid.encode("ascii")
         if obfuscate_data:
-            key = re.sub(br"[^a-fA-F0-9]", b"", uid)
+            key = re.sub(rb"[^a-fA-F0-9]", b"", uid)
             key = binascii.unhexlify((key + key)[:32])
 
         # copy over all images and fonts that are actually used in the ebook

@@ -37,7 +37,6 @@ SELF_CLOSING_TAGS = [
 
 
 class MobiMLConverter(object):
-
     PAGE_BREAK_PAT = re.compile(r"(<[/]{0,1}mbp:pagebreak\s*[/]{0,1}>)+", re.IGNORECASE)
     IMAGE_ATTRS = ("lowrecindex", "recindex", "hirecindex")
 
@@ -166,7 +165,6 @@ class MobiMLConverter(object):
 
     # main routine to convert from mobi markup language to html
     def processml(self):
-
         # are these really needed
         html_done = False
         head_done = False
@@ -180,7 +178,6 @@ class MobiMLConverter(object):
 
         # now parse the cleaned up ml into standard xhtml
         while True:
-
             r = self.parseml()
             if not r:
                 break

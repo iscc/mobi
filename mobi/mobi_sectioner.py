@@ -105,21 +105,37 @@ class Sectionizer:
         logger.debug("Palm Database Header")
         logger.debug("Database name: " + repr(self.palmheader[:32]))
         (dbattributes,) = struct.unpack_from(b">H", self.palmheader, 32)
-        logger.debug("Bitfield attributes: 0x%0X" % dbattributes,)
+        logger.debug(
+            "Bitfield attributes: 0x%0X" % dbattributes,
+        )
         if dbattributes != 0:
-            print(" (",)
+            print(
+                " (",
+            )
             if dbattributes & 2:
-                print("Read-only; ",)
+                print(
+                    "Read-only; ",
+                )
             if dbattributes & 4:
-                print("Dirty AppInfoArea; ",)
+                print(
+                    "Dirty AppInfoArea; ",
+                )
             if dbattributes & 8:
-                print("Needs to be backed up; ",)
+                print(
+                    "Needs to be backed up; ",
+                )
             if dbattributes & 16:
-                print("OK to install over newer; ",)
+                print(
+                    "OK to install over newer; ",
+                )
             if dbattributes & 32:
-                print("Reset after installation; ",)
+                print(
+                    "Reset after installation; ",
+                )
             if dbattributes & 64:
-                print("No copying by PalmPilot beaming; ",)
+                print(
+                    "No copying by PalmPilot beaming; ",
+                )
             print(")")
         else:
             print("")
