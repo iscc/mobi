@@ -75,7 +75,7 @@ Options:
     -r                 write raw data to the output folder
 ```
 
-### [Unreleased]
+### [0.4.0] - 2025-08-26
 
 - **BREAKING**: Drop Python 2 support, modernize codebase
 - **BREAKING**: Bump minimum Python version to 3.9
