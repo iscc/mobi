@@ -52,6 +52,16 @@ Options:
     -r                 write raw data to the output folder
 ```
 
+### [Unreleased]
+- **BREAKING**: Drop Python 2 support, modernize codebase
+- **BREAKING**: Bump minimum Python version to 3.9
+- Replace deprecated `imghdr` module with `standard-imghdr` for Python 3.11+ compatibility
+- Update loguru dependency to v0.7+ for Python 3.11 support
+- Migrate build system from Poetry to uv/hatchling
+- Add Python 3.10 and 3.11 to CI testing
+- Add pre-commit hooks for code quality
+- Code formatting updates with latest black
+
 ### [0.3.3] - 2022-03-03
 - Add GitHub build workfow
 - Updated dependencies
