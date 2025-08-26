@@ -131,3 +131,6 @@ dmypy.json
 .pyre/
 
 .idea/
+
+# AI
+CLAUDE.local.md

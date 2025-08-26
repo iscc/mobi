@@ -3,7 +3,19 @@
 [![Version](https://img.shields.io/pypi/v/mobi.svg)](https://pypi.python.org/pypi/mobi/)
 [![Downloads](https://pepy.tech/badge/mobi)](https://pepy.tech/project/mobi)
 
-> A fork of [KindleUnpack](https://github.com/kevinhendricks/KindleUnpack) which removes the GUI part and makes it available as a python library via [PyPi](https://pypi.org/project/mobi/) for easy unpacking of mobi files.
+> A fork of [KindleUnpack](https://github.com/kevinhendricks/KindleUnpack) which removes the GUI
+> part and makes it available as a python library via [PyPi](https://pypi.org/project/mobi/) for
+> easy unpacking of mobi files.
+
+## Installation
+
+```bash
+# Using uv (recommended)
+uv add mobi
+
+# Using pip
+pip install mobi
+```
 
 ## Usage
 
@@ -11,15 +23,26 @@
 
 ```python
 import mobi
+import tempfile
+import shutil
 
+# Extract the mobi file
 tempdir, filepath = mobi.extract("mybook.mobi")
+
+# Use the extracted file
+with open(filepath, 'r') as f:
+    content = f.read()
+    # Process the content...
+
+# Clean up the temporary directory
+shutil.rmtree(tempdir)
 ```
 
-'tempdir' is the path where the mobi is unpacked
-'filepath' is the path to either an epub, html or pdf file depending on the mobi type
+`tempdir` is the path where the mobi is unpacked\
+`filepath` is the path to either an epub, html or pdf file depending on the mobi type
 
-| NOTE: You are responsible to delete the generated tempdir! |
-| --- |
+**⚠️ Important:** You are responsible for deleting the temporary directory after use to avoid
+filling up disk space.
 
 ### From the command line
 
@@ -53,6 +76,7 @@ Options:
 ```
 
 ### [Unreleased]
+
 - **BREAKING**: Drop Python 2 support, modernize codebase
 - **BREAKING**: Bump minimum Python version to 3.9
 - Replace deprecated `imghdr` module with `standard-imghdr` for Python 3.11+ compatibility
@@ -63,14 +87,17 @@ Options:
 - Code formatting updates with latest black
 
 ### [0.3.3] - 2022-03-03
+
 - Add GitHub build workfow
 - Updated dependencies
 - Rmoved python 3.6 support (EOL)
 
 ### [0.3.2] - 2021-10-14
+
 - Update dependencies
 
 ### [0.3.1] - 2020-06-27
+
 - Fix pypi link
 - Update dependencies
 
@@ -79,7 +106,6 @@ Options:
 - Add support for mobi7 only files
 - Add experimental support for mobi print replica files
 - Add support for file-like objects
-
 
 ### [0.2.0] - 2020-03-02
 

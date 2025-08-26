@@ -29,6 +29,17 @@ repos:
         args: ['-ll']  # Only report medium and high severity issues
         exclude: ^tests/
 
+  # Markdown formatting with mdformat
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.19
+    hooks:
+      - id: mdformat
+        args: ['--end-of-line', 'lf']  # Force LF line endings
+        additional_dependencies:
+          - mdformat-gfm  # GitHub Flavored Markdown support
+          - mdformat-frontmatter  # YAML frontmatter support
+          - mdformat-footnote  # Footnote support
+
 # Configuration settings
 default_language_version:
   python: python3
