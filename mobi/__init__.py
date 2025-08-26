@@ -1,6 +1,6 @@
 import os
 
 os.environ["LOGURU_AUTOINIT"] = "False"
-from mobi.extract import extract
+from mobi.extract import extract as extract  # explicit re-export
 
-__version__ = "0.3.3"
+__version__ = "0.4.0"

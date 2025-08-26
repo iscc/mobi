@@ -1,8 +1,8 @@
 import os
 import shutil
-from os.path import abspath, join, exists, dirname, splitext
-import mobi
+from os.path import abspath, dirname, exists, join, splitext
 
+import mobi
 
 TEST_DIR = dirname(abspath(__file__))
 

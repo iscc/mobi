@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
-from .compatibility_utils import PY2, bchr, bstr, bord
 from loguru import logger
+
+from .compatibility_utils import PY2, bchr, bord, bstr
 
 if PY2:
     range = xrange
@@ -14,7 +13,6 @@ import struct
 
 # note:  struct pack, unpack, unpack_from all require bytestring format
 # data all the way up to at least python 2.7.5, python 3 okay with bytestring
-
 from .mobi_utils import toHex
 
 
@@ -28,7 +26,7 @@ class MobiIndex:
         outtbl = []
         ctoc_text = {}
         if idx != 0xFFFFFFFF:
-            sect.setsectiondescription(idx, "{0} Main INDX section".format(label))
+            sect.setsectiondescription(idx, f"{label} Main INDX section")
             data = sect.loadSection(idx)
             idxhdr, hordt1, hordt2 = self.parseINDXHeader(data)
             IndexCount = idxhdr["count"]
@@ -49,9 +47,7 @@ class MobiIndex:
                 logger.debug("IndexCount is", IndexCount)
                 logger.debug("TagTable: %s" % tagTable)
             for i in range(idx + 1, idx + 1 + IndexCount):
-                sect.setsectiondescription(
-                    i, "{0} Extra {1:d} INDX section".format(label, i - idx)
-                )
+                sect.setsectiondescription(i, f"{label} Extra {i - idx:d} INDX section")
                 data = sect.loadSection(i)
                 hdrinfo, ordt1, ordt2 = self.parseINDXHeader(data)
                 idxtPos = hdrinfo["start"]
@@ -88,7 +84,7 @@ class MobiIndex:
 
     def parseINDXHeader(self, data):
         "read INDX header"
-        if not data[:4] == b"INDX":
+        if data[:4] != b"INDX":
             logger.debug("Warning: index section is not INDX")
             return False
         words = (
@@ -249,21 +245,11 @@ def getTagMap(controlByteCount, tagTable, entryData, startPos, endPos):
         if endFlag == 0x01:
             controlByteIndex += 1
             continue
-        cbyte = ord(
-            entryData[startPos + controlByteIndex : startPos + controlByteIndex + 1]
-        )
+        cbyte = ord(entryData[startPos + controlByteIndex : startPos + controlByteIndex + 1])
         if 0:
-            logger.debug(
-                "Control Byte Index %0x , Control Byte Value %0x"
-                % (controlByteIndex, cbyte)
-            )
+            logger.debug("Control Byte Index %0x , Control Byte Value %0x" % (controlByteIndex, cbyte))
 
-        value = (
-            ord(
-                entryData[startPos + controlByteIndex : startPos + controlByteIndex + 1]
-            )
-            & mask
-        )
+        value = ord(entryData[startPos + controlByteIndex : startPos + controlByteIndex + 1]) & mask
         if value != 0:
             if value == mask:
                 if countSetBits(mask) > 1:
@@ -300,10 +286,7 @@ def getTagMap(controlByteCount, tagTable, entryData, startPos, endPos):
                 totalConsumed += consumed
                 values.append(data)
             if totalConsumed != valueBytes:
-                logger.debug(
-                    "Error: Should consume %s bytes, but consumed %s"
-                    % (valueBytes, totalConsumed)
-                )
+                logger.debug("Error: Should consume %s bytes, but consumed %s" % (valueBytes, totalConsumed))
         tagHashMap[tag] = values
     # Test that all bytes have been processed if endPos is given.
     if endPos is not None and dataStart != endPos:
@@ -311,8 +294,7 @@ def getTagMap(controlByteCount, tagTable, entryData, startPos, endPos):
         for char in entryData[dataStart:endPos]:
             if bord(char) != 0:
                 logger.debug(
-                    "Warning: There are unprocessed index bytes left: %s"
-                    % toHex(entryData[dataStart:endPos])
+                    "Warning: There are unprocessed index bytes left: %s" % toHex(entryData[dataStart:endPos])
                 )
                 if 0:
                     logger.debug("controlByteCount: %s" % controlByteCount)

@@ -1,17 +1,13 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
-
-from __future__ import unicode_literals, division, absolute_import, print_function
-from loguru import logger
 
 import struct
 
+from loguru import logger
+
 # note:  struct pack, unpack, unpack_from all require bytestring format
 # data all the way up to at least python 2.7.5, python 3 okay with bytestring
-
 from .unipath import pathof
-
 
 # important  pdb header offsets
 unique_id_seed = 68
@@ -188,9 +184,7 @@ def insertsection(datain, secno, secdata):  # insert a new section
     return dataout
 
 
-def insertsectionrange(
-    sectionsource, firstsec, lastsec, sectiontarget, targetsec
-):  # insert a range of sections
+def insertsectionrange(sectionsource, firstsec, lastsec, sectiontarget, targetsec):  # insert a range of sections
     # print("inserting secno" , firstsec,  "to", lastsec, "into" ,targetsec, "sections")
     # dataout = sectiontarget
     # for idx in range(lastsec,firstsec-1,-1):
@@ -210,9 +204,7 @@ def insertsectionrange(
     datalst.append(sectiontarget[unique_id_seed + 4 : number_of_pdb_records])
     datalst.append(struct.pack(b">H", nsec + nins))
     for i in range(0, targetsec):
-        ofs, flgval = struct.unpack_from(
-            b">2L", sectiontarget, first_pdb_record + i * 8
-        )
+        ofs, flgval = struct.unpack_from(b">2L", sectiontarget, first_pdb_record + i * 8)
         ofsnew = ofs + 8 * nins
         flgvalnew = flgval
         datalst.append(struct.pack(b">L", ofsnew) + struct.pack(b">L", flgvalnew))
@@ -226,9 +218,7 @@ def insertsectionrange(
         # print(ofsnew, flgvalnew)
     dif = srcend - srcstart
     for i in range(targetsec, nsec):
-        ofs, flgval = struct.unpack_from(
-            b">2L", sectiontarget, first_pdb_record + i * 8
-        )
+        ofs, flgval = struct.unpack_from(b">2L", sectiontarget, first_pdb_record + i * 8)
         ofsnew = ofs + dif + 8 * nins
         flgvalnew = 2 * (i + nins)
         datalst.append(struct.pack(b">L", ofsnew) + struct.pack(b">L", flgvalnew))
@@ -262,9 +252,7 @@ def add_exth(rec0, exth_num, exth_bytes):
         + exth_bytes
         + rec0[ebase + 12 :]
     )
-    newrec0 = writeint(
-        newrec0, title_offset, getint(newrec0, title_offset) + newrecsize
-    )
+    newrec0 = writeint(newrec0, title_offset, getint(newrec0, title_offset) + newrecsize)
     return newrec0
 
 
@@ -292,14 +280,10 @@ def write_exth(rec0, exth_num, exth_bytes):
             dif = len(exth_bytes) + 8 - getint(rec0, ebase_idx + 4)
             newrec0 = rec0
             if dif != 0:
-                newrec0 = writeint(
-                    newrec0, title_offset, getint(newrec0, title_offset) + dif
-                )
+                newrec0 = writeint(newrec0, title_offset, getint(newrec0, title_offset) + dif)
             return (
                 newrec0[: ebase + 4]
-                + struct.pack(
-                    b">L", elen + len(exth_bytes) + 8 - getint(rec0, ebase_idx + 4)
-                )
+                + struct.pack(b">L", elen + len(exth_bytes) + 8 - getint(rec0, ebase_idx + 4))
                 + struct.pack(b">L", enum)
                 + rec0[ebase + 12 : ebase_idx + 4]
                 + struct.pack(b">L", len(exth_bytes) + 8)
@@ -320,9 +304,7 @@ def del_exth(rec0, exth_num):
         exth_size = getint(rec0, ebase_idx + 4)
         if exth_id == exth_num:
             newrec0 = rec0
-            newrec0 = writeint(
-                newrec0, title_offset, getint(newrec0, title_offset) - exth_size
-            )
+            newrec0 = writeint(newrec0, title_offset, getint(newrec0, title_offset) - exth_size)
             newrec0 = newrec0[:ebase_idx] + newrec0[ebase_idx + exth_size :]
             newrec0 = (
                 newrec0[0 : ebase + 4]
@@ -367,9 +349,7 @@ class mobi_split:
         srcs = getint(datain_rec0, srcs_index)
         num_srcs = getint(datain_rec0, srcs_count)
         if srcs != 0xFFFFFFFF and num_srcs > 0:
-            self.result_file7 = deletesectionrange(
-                self.result_file7, srcs, srcs + num_srcs - 1
-            )
+            self.result_file7 = deletesectionrange(self.result_file7, srcs, srcs + num_srcs - 1)
             datain_rec0 = writeint(datain_rec0, srcs_index, 0xFFFFFFFF)
             datain_rec0 = writeint(datain_rec0, srcs_count, 0)
         # reset the EXTH 121 KF8 Boundary meta data to 0xffffffff
@@ -435,9 +415,7 @@ class mobi_split:
         # create standalone mobi8
         self.result_file8 = deletesectionrange(datain, 0, datain_kf8 - 1)
         target = getint(datain_kfrec0, first_resc_record)
-        self.result_file8 = insertsectionrange(
-            datain, firstimage, lastimage, self.result_file8, target
-        )
+        self.result_file8 = insertsectionrange(datain, firstimage, lastimage, self.result_file8, target)
         datain_kfrec0 = readsection(self.result_file8, 0)
 
         # Only keep the correct EXTH 116 StartOffset, KG 2.5 carries over the one from the mobi7 part, which then points at garbage in the mobi8 part, and confuses FW 3.4
@@ -449,9 +427,7 @@ class mobi_split:
             datain_kfrec0 = del_exth(datain_kfrec0, 116)
 
         # update the EXTH 125 KF8 Count of Images/Fonts/Resources
-        datain_kfrec0 = write_exth(
-            datain_kfrec0, 125, struct.pack(b">L", lastimage - firstimage + 1)
-        )
+        datain_kfrec0 = write_exth(datain_kfrec0, 125, struct.pack(b">L", lastimage - firstimage + 1))
 
         # need to reset flags stored in 0x80-0x83
         # old mobi with exth: 0x50, mobi7 part with exth: 0x1850, mobi8 part with exth: 0x1050
@@ -465,9 +441,7 @@ class mobi_split:
         (fval,) = struct.unpack_from(">L", datain_kfrec0, 0x80)
         fval = fval & 0x1FFF
         fval |= 0x0800
-        datain_kfrec0 = (
-            datain_kfrec0[:0x80] + struct.pack(b">L", fval) + datain_kfrec0[0x84:]
-        )
+        datain_kfrec0 = datain_kfrec0[:0x80] + struct.pack(b">L", fval) + datain_kfrec0[0x84:]
 
         # properly update other index pointers that have been shifted by the insertion of images
         ofs_list = [
@@ -480,9 +454,7 @@ class mobi_split:
         for ofs, sz in ofs_list:
             n = getint(datain_kfrec0, ofs, sz)
             if n != 0xFFFFFFFF:
-                datain_kfrec0 = writeint(
-                    datain_kfrec0, ofs, n + lastimage - firstimage + 1, sz
-                )
+                datain_kfrec0 = writeint(datain_kfrec0, ofs, n + lastimage - firstimage + 1, sz)
         self.result_file8 = writesection(self.result_file8, 0, datain_kfrec0)
 
         # no need to replace kf8 style fcis with mobi 7 one

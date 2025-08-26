@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
-from .compatibility_utils import unicode_str
-from loguru import logger
-from .unipath import pathof
-import os
 import imghdr
-
+import os
 import struct
+
+from loguru import logger
+
+from .compatibility_utils import unicode_str
+from .unipath import pathof
 
 # note:  struct pack, unpack, unpack_from all require bytestring format
 # data all the way up to at least python 2.7.5, python 3 okay with bytestring
@@ -43,13 +42,13 @@ def get_image_type(imgname, imgdata=None):
         if imgdata is None:
             with open(pathof(imgname), "rb") as f:
                 imgdata = f.read()
-        if imgdata[0:2] == b"\xFF\xD8":
+        if imgdata[0:2] == b"\xff\xd8":
             # Get last non-null bytes
             last = len(imgdata)
             while imgdata[last - 1 : last] == b"\x00":
                 last -= 1
             # Be extra safe, check the trailing bytes, too.
-            if imgdata[last - 2 : last] == b"\xFF\xD9":
+            if imgdata[last - 2 : last] == b"\xff\xd9":
                 imgtype = "jpeg"
     return imgtype
 
@@ -120,8 +119,7 @@ def get_image_size(imgname, imgdata=None):
 
 
 # XXX experimental
-class CoverProcessor(object):
-
+class CoverProcessor:
     """Create a cover page."""
 
     def __init__(self, files, metadata, rscnames, imgname=None, imgdata=None):
@@ -184,38 +182,34 @@ class CoverProcessor(object):
             data = ""
             data += '<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html>'
             data += '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"'
-            data += ' xml:lang="{:s}">\n'.format(lang)
-            data += "<head>\n<title>{:s}</title>\n".format(title)
+            data += f' xml:lang="{lang:s}">\n'
+            data += f"<head>\n<title>{title:s}</title>\n"
             data += '<style type="text/css">\n'
             data += "body {\n  margin: 0;\n  padding: 0;\n  text-align: center;\n}\n"
             data += "div {\n  height: 100%;\n  width: 100%;\n  text-align: center;\n  page-break-inside: avoid;\n}\n"
             data += "img {\n  display: inline-block;\n  height: 100%;\n  margin: 0 auto;\n}\n"
             data += "</style>\n</head>\n"
             data += "<body><div>\n"
-            data += '  <img src="{:s}" alt=""/>\n'.format(image_path)
+            data += f'  <img src="{image_path:s}" alt=""/>\n'
             data += "</div></body>\n</html>"
         else:
             width = self.width
             height = self.height
-            viewBox = "0 0 {0:d} {1:d}".format(width, height)
+            viewBox = f"0 0 {width:d} {height:d}"
 
             data = ""
             data += '<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html>'
             data += '<html xmlns="http://www.w3.org/1999/xhtml"'
-            data += ' xml:lang="{:s}">\n'.format(lang)
-            data += "<head>\n  <title>{:s}</title>\n".format(title)
+            data += f' xml:lang="{lang:s}">\n'
+            data += f"<head>\n  <title>{title:s}</title>\n"
             data += '<style type="text/css">\n'
             data += "svg {padding: 0pt; margin:0pt}\n"
             data += "body { text-align: center; padding:0pt; margin: 0pt; }\n"
             data += "</style>\n</head>\n"
             data += "<body>\n  <div>\n"
             data += '    <svg xmlns="http://www.w3.org/2000/svg" height="100%" preserveAspectRatio="xMidYMid meet"'
-            data += ' version="1.1" viewBox="{0:s}" width="100%" xmlns:xlink="http://www.w3.org/1999/xlink">\n'.format(
-                viewBox
-            )
-            data += '      <image height="{0}" width="{1}" xlink:href="{2}"/>\n'.format(
-                height, width, image_path
-            )
+            data += f' version="1.1" viewBox="{viewBox:s}" width="100%" xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+            data += f'      <image height="{height}" width="{width}" xlink:href="{image_path}"/>\n'
             data += "    </svg>\n"
             data += "  </div>\n</body>\n</html>"
         return data
@@ -228,7 +222,7 @@ class CoverProcessor(object):
 
         outfile = os.path.join(files.k8text, cover_page)
         if os.path.exists(pathof(outfile)):
-            logger.debug("Warning: {:s} already exists.".format(cover_page))
+            logger.debug(f"Warning: {cover_page:s} already exists.")
             os.remove(pathof(outfile))
         with open(pathof(outfile), "wb") as f:
             f.write(data.encode("utf-8"))
@@ -237,7 +231,5 @@ class CoverProcessor(object):
     def guide_toxml(self):
         files = self.files
         text_dir = os.path.relpath(files.k8text, files.k8oebps)
-        data = '<reference type="cover" title="Cover" href="{:s}/{:s}" />\n'.format(
-            text_dir, self.cover_page
-        )
+        data = f'<reference type="cover" title="Cover" href="{text_dir:s}/{self.cover_page:s}" />\n'
         return data

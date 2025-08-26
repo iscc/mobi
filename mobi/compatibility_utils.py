@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 # Copyright (c) 2014 Kevin B. Hendricks, John Schember, and Doug Massay
@@ -25,10 +24,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
 # WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
-import sys
 import codecs
+import sys
 
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
@@ -202,9 +200,7 @@ def unicode_str(p, enc="utf-8"):
 
 
 ASCII_CHARS = set(chr(x) for x in range(128))
-URL_SAFE = set(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789" "#" "_.-/~"
-)
+URL_SAFE = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789" "#" "_.-/~")
 IRI_UNSAFE = ASCII_CHARS - URL_SAFE
 
 
@@ -248,7 +244,7 @@ def unicode_argv():
         # Windows, with the underlying Windows API instead replacing multi-byte
         # characters with '?'.  So use shell32.GetCommandLineArgvW to get sys.argv
         # as a list of Unicode strings
-        from ctypes import POINTER, byref, cdll, c_int, windll
+        from ctypes import POINTER, byref, c_int, cdll, windll
         from ctypes.wintypes import LPCWSTR, LPWSTR
 
         GetCommandLineW = cdll.kernel32.GetCommandLineW
@@ -289,7 +285,5 @@ def add_cp65001_codec():
         try:
             codecs.lookup("cp65001")
         except LookupError:
-            codecs.register(
-                lambda name: name == "cp65001" and codecs.lookup("utf-8") or None
-            )
+            codecs.register(lambda name: name == "cp65001" and codecs.lookup("utf-8") or None)
     return

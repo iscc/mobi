@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
-from .compatibility_utils import PY2, PY3, utf8_str, bstr, bchr
 from loguru import logger
+
+from .compatibility_utils import PY2, PY3, bchr, bstr, utf8_str
 
 if PY2:
     range = xrange
@@ -15,19 +14,17 @@ if PY3:
     array_format = "B"
 
 import array
-
 import struct
 
 # note:  struct pack, unpack, unpack_from all require bytestring format
 # data all the way up to at least python 2.7.5, python 3 okay with bytestring
-
-from .mobi_index import getVariableWidthValue, readTagSection, getTagMap
+from .mobi_index import getTagMap, getVariableWidthValue, readTagSection
 from .mobi_utils import toHex
 
 DEBUG_DICT = False
 
 
-class InflectionData(object):
+class InflectionData:
     def __init__(self, infldatas):
         self.infldatas = infldatas
         self.starts = []
@@ -53,15 +50,13 @@ class InflectionData(object):
         rvalue, start, count, data = self.lookup(value)
         (offset,) = struct.unpack_from(b">H", data, start + 4 + (2 * rvalue))
         if rvalue + 1 < count:
-            (nextOffset,) = struct.unpack_from(
-                b">H", data, start + 4 + (2 * (rvalue + 1))
-            )
+            (nextOffset,) = struct.unpack_from(b">H", data, start + 4 + (2 * (rvalue + 1)))
         else:
             nextOffset = None
         return offset, nextOffset, data
 
 
-class dictSupport(object):
+class dictSupport:
     def __init__(self, mh, sect):
         self.mh = mh
         self.header = mh.header
@@ -71,7 +66,7 @@ class dictSupport(object):
 
     def parseHeader(self, data):
         "read INDX header"
-        if not data[:4] == b"INDX":
+        if data[:4] != b"INDX":
             logger.debug("Warning: index section is not INDX")
             return False
         words = (
@@ -103,10 +98,7 @@ class dictSupport(object):
         header["oentries"] = oentries
 
         if DEBUG_DICT:
-            logger.debug(
-                "otype %d, oentries %d, op1 %d, op2 %d, otagx %d"
-                % (otype, oentries, op1, op2, otagx)
-            )
+            logger.debug("otype %d, oentries %d, op1 %d, op2 %d, otagx %d" % (otype, oentries, op1, op2, otagx))
 
         if header["code"] == 0xFDEA or oentries > 0:
             # some dictionaries seem to be codepage 65002 (0xFDEA) which seems
@@ -143,9 +135,7 @@ class dictSupport(object):
 
         decodeInflection = True
         if metaOrthIndex != 0xFFFFFFFF:
-            logger.debug(
-                "Info: Document contains orthographic index, handle as dictionary"
-            )
+            logger.debug("Info: Document contains orthographic index, handle as dictionary")
             if metaInflIndex == 0xFFFFFFFF:
                 decodeInflection = False
             else:
@@ -162,15 +152,11 @@ class dictSupport(object):
 
                 inflNameData = sect.loadSection(metaInflIndex + 1 + metaIndexCount)
                 tagSectionStart = midxhdr["len"]
-                inflectionControlByteCount, inflectionTagTable = readTagSection(
-                    tagSectionStart, metaInflIndexData
-                )
+                inflectionControlByteCount, inflectionTagTable = readTagSection(tagSectionStart, metaInflIndexData)
                 if DEBUG_DICT:
                     logger.debug("inflectionTagTable: %s" % inflectionTagTable)
                 if self.hasTag(inflectionTagTable, 0x07):
-                    logger.debug(
-                        "Error: Dictionary uses obsolete inflection rule scheme which is not yet supported"
-                    )
+                    logger.debug("Error: Dictionary uses obsolete inflection rule scheme which is not yet supported")
                     decodeInflection = False
 
             data = sect.loadSection(metaOrthIndex)
@@ -185,9 +171,7 @@ class dictSupport(object):
             if DEBUG_DICT:
                 logger.debug("orthTagTable: %s" % tagTable)
             if hordt2 is not None:
-                logger.debug(
-                    "orth entry uses ordt2 lookup table of type ", idxhdr["otype"]
-                )
+                logger.debug("orth entry uses ordt2 lookup table of type ", idxhdr["otype"])
             hasEntryLength = self.hasTag(tagTable, 0x02)
             if not hasEntryLength:
                 logger.debug("Info: Index doesn't contain entry length tags")
@@ -258,17 +242,13 @@ class dictSupport(object):
                                 + b"</idx:orth>"
                             )
                             if entryStartPosition in positionMap:
-                                positionMap[entryStartPosition] = (
-                                    positionMap[entryStartPosition] + ml
-                                )
+                                positionMap[entryStartPosition] = positionMap[entryStartPosition] + ml
                             else:
                                 positionMap[entryStartPosition] = ml
                             assert len(tagMap[0x02]) == 1
                             entryEndPosition = entryStartPosition + tagMap[0x02][0]
                             if entryEndPosition in positionMap:
-                                positionMap[entryEndPosition] = (
-                                    b"</idx:entry>" + positionMap[entryEndPosition]
-                                )
+                                positionMap[entryEndPosition] = b"</idx:entry>" + positionMap[entryEndPosition]
                             else:
                                 positionMap[entryEndPosition] = b"</idx:entry>"
 
@@ -281,9 +261,7 @@ class dictSupport(object):
                                 + b"</idx:entry>\n"
                             )
                             if entryStartPosition in positionMap:
-                                positionMap[entryStartPosition] = (
-                                    positionMap[entryStartPosition] + indexTags
-                                )
+                                positionMap[entryStartPosition] = positionMap[entryStartPosition] + indexTags
                             else:
                                 positionMap[entryStartPosition] = indexTags
         return positionMap
@@ -301,9 +279,7 @@ class dictSupport(object):
                 return True
         return False
 
-    def getInflectionGroups(
-        self, mainEntry, controlByteCount, tagTable, dinfl, inflectionNames, groupList
-    ):
+    def getInflectionGroups(self, mainEntry, controlByteCount, tagTable, dinfl, inflectionNames, groupList):
         """
         Create string which contains the inflection groups with inflection rules as mobipocket tags.
 
@@ -337,26 +313,16 @@ class dictSupport(object):
                 # Get name of inflection rule.
                 value = tagMap[0x05][i]
                 consumed, textLength = getVariableWidthValue(inflectionNames, value)
-                inflectionName = inflectionNames[
-                    value + consumed : value + consumed + textLength
-                ]
+                inflectionName = inflectionNames[value + consumed : value + consumed + textLength]
 
                 # Get and apply inflection rule across possibly multiple inflection data sections
                 value = tagMap[0x1A][i]
                 rvalue, start, count, data = dinfl.lookup(value)
                 (offset,) = struct.unpack_from(b">H", data, start + 4 + (2 * rvalue))
                 textLength = ord(data[offset : offset + 1])
-                inflection = self.applyInflectionRule(
-                    mainEntry, data, offset + 1, offset + 1 + textLength
-                )
+                inflection = self.applyInflectionRule(mainEntry, data, offset + 1, offset + 1 + textLength)
                 if inflection is not None:
-                    result += (
-                        b'  <idx:iform name="'
-                        + inflectionName
-                        + b'" value="'
-                        + inflection
-                        + b'"/>'
-                    )
+                    result += b'  <idx:iform name="' + inflectionName + b'" value="' + inflection + b'"/>'
 
             result += b"</idx:infl>"
         return result
@@ -385,15 +351,8 @@ class dictSupport(object):
                     position = len(byteArray)
                 position -= offset
             elif abyte > 0x13:
-                if mode == -1:
-                    logger.debug(
-                        "Error: Unexpected first byte %i of inflection rule" % abyte
-                    )
-                    return None
-                elif position == -1:
-                    logger.debug(
-                        "Error: Unexpected first byte %i of inflection rule" % abyte
-                    )
+                if mode == -1 or position == -1:
+                    logger.debug("Error: Unexpected first byte %i of inflection rule" % abyte)
                     return None
                 else:
                     if mode == 0x01:
@@ -418,9 +377,7 @@ class dictSupport(object):
                                         bchr(deleted),
                                     )
                                 )
-                            logger.debug(
-                                "Error: Delete operation of inflection rule failed"
-                            )
+                            logger.debug("Error: Delete operation of inflection rule failed")
                             return None
                     elif mode == 0x04:
                         # Delete at word start
@@ -436,14 +393,10 @@ class dictSupport(object):
                                         bchr(deleted),
                                     )
                                 )
-                            logger.debug(
-                                "Error: Delete operation of inflection rule failed"
-                            )
+                            logger.debug("Error: Delete operation of inflection rule failed")
                             return None
                     else:
-                        logger.debug(
-                            "Error: Inflection rule mode %x is not implemented" % mode
-                        )
+                        logger.debug("Error: Inflection rule mode %x is not implemented" % mode)
                         return None
             elif abyte == 0x01:
                 # Insert at word start
@@ -467,8 +420,6 @@ class dictSupport(object):
                 # Delete at word start
                 mode = abyte
             else:
-                logger.debug(
-                    "Error: Inflection rule mode %x is not implemented" % abyte
-                )
+                logger.debug("Error: Inflection rule mode %x is not implemented" % abyte)
                 return None
         return utf8_str(byteArray.tostring())

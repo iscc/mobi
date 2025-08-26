@@ -1,21 +1,18 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
+
+from loguru import logger
 
 from .compatibility_utils import PY2, unicode_str
-from loguru import logger
 
 if PY2:
     range = xrange
 
-import struct
-
 # note:  struct pack, unpack, unpack_from all require bytestring format
 # data all the way up to at least python 2.7.5, python 3 okay with bytestring
-
 import re
+import struct
 
 # note: re requites the pattern to be the exact same type as the data to be searched in python3
 # but u"" is not allowed for the pattern itself only b""
@@ -114,9 +111,7 @@ class PageMapProcessor:
         (rev_len,) = struct.unpack_from(b">L", self.data, 0x10)
         # skip over header, revision string length data, and revision string
         ptr = 0x14 + rev_len
-        pm_1, self.pm_len, self.pm_nn, self.pm_bits = struct.unpack_from(
-            b">4H", self.data, ptr
-        )
+        pm_1, self.pm_len, self.pm_nn, self.pm_bits = struct.unpack_from(b">4H", self.data, ptr)
         # print(pm_1, self.pm_len, self.pm_nn, self.pm_bits)
         self.pmstr = self.data[ptr + 8 : ptr + 8 + self.pm_len]
         self.pmoff = self.data[ptr + 8 + self.pm_len :]

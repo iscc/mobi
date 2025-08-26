@@ -1,27 +1,23 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
+
+from loguru import logger
 
 from .compatibility_utils import PY2, bstr, utf8_str
-from loguru import logger
 
 if PY2:
     range = xrange
 
 import os
 
-import struct
-
 # note:  struct pack, unpack, unpack_from all require bytestring format
 # data all the way up to at least python 2.7.5, python 3 okay with bytestring
-
 import re
+import struct
 
 # note: re requites the pattern to be the exact same type as the data to be searched in python3
 # but u"" is not allowed for the pattern itself only b""
-
 from .mobi_index import MobiIndex
 from .mobi_utils import fromBase32
 from .unipath import pathof
@@ -99,17 +95,12 @@ class K8Processor:
             header = self.sect.loadSection(self.fdst)
             if header[0:4] == b"FDST":
                 (num_sections,) = struct.unpack_from(b">L", header, 0x08)
-                self.fdsttbl = struct.unpack_from(
-                    bstr(">%dL" % (num_sections * 2)), header, 12
-                )[::2] + (mh.rawSize,)
+                self.fdsttbl = struct.unpack_from(bstr(">%dL" % (num_sections * 2)), header, 12)[::2] + (mh.rawSize,)
                 sect.setsectiondescription(self.fdst, "KF8 FDST INDX")
                 if self.DEBUG:
                     logger.debug("\nFDST Section Map:  %d sections" % num_sections)
                     for j in range(num_sections):
-                        logger.debug(
-                            "Section %d: 0x%08X - 0x%08X"
-                            % (j, self.fdsttbl[j], self.fdsttbl[j + 1])
-                        )
+                        logger.debug("Section %d: 0x%08X - 0x%08X" % (j, self.fdsttbl[j], self.fdsttbl[j + 1]))
             else:
                 logger.debug("\nError: K8 Mobi with Missing FDST info")
 
@@ -125,16 +116,12 @@ class K8Processor:
             fileptr = 0
             for [text, tagMap] in outtbl:
                 # file number, skeleton name, fragtbl record count, start position, length
-                skeltbl.append(
-                    [fileptr, text, tagMap[1][0], tagMap[6][0], tagMap[6][1]]
-                )
+                skeltbl.append([fileptr, text, tagMap[1][0], tagMap[6][0], tagMap[6][1]])
                 fileptr += 1
         self.skeltbl = skeltbl
         if self.DEBUG:
             logger.debug("\nSkel Table:  %d entries" % len(self.skeltbl))
-            logger.debug(
-                "table: filenum, skeleton name, frag tbl record count, start position, length"
-            )
+            logger.debug("table: filenum, skeleton name, frag tbl record count, start position, length")
             for j in range(len(self.skeltbl)):
                 logger.debug(self.skeltbl[j])
 
@@ -164,9 +151,7 @@ class K8Processor:
         self.fragtbl = fragtbl
         if self.DEBUG:
             logger.debug("\nFragment Table: %d entries" % len(self.fragtbl))
-            logger.debug(
-                "table: file position, link id text, file num, sequence number, start position, length"
-            )
+            logger.debug("table: file position, link id text, file num, sequence number, start position, length")
             for j in range(len(self.fragtbl)):
                 logger.debug(self.fragtbl[j])
 
@@ -178,9 +163,7 @@ class K8Processor:
             #     data = self.sect.loadSection(self.guideidx + i)
             #     with open(pathof(fname), 'wb') as f:
             #         f.write(data)
-            outtbl, ctoc_text = self.mi.getIndexData(
-                self.guideidx, "KF8 Guide elements)"
-            )
+            outtbl, ctoc_text = self.mi.getIndexData(self.guideidx, "KF8 Guide elements)")
             for [text, tagMap] in outtbl:
                 # ref_type, ref_title, frag number
                 ctocoffset = tagMap[1][0]
@@ -227,9 +210,7 @@ class K8Processor:
             skeleton = text[skelpos:baseptr]
             aidtext = "0"
             for i in range(fragcnt):
-                [insertpos, idtext, filenum, seqnum, startpos, length] = self.fragtbl[
-                    fragptr
-                ]
+                [insertpos, idtext, filenum, seqnum, startpos, length] = self.fragtbl[fragptr]
                 aidtext = idtext[12:-2]
                 if i == 0:
                     filename = "part%04d.xhtml" % filenum
@@ -238,14 +219,11 @@ class K8Processor:
                 head = skeleton[:insertpos]
                 tail = skeleton[insertpos:]
                 actual_inspos = insertpos
-                if tail.find(b">") < tail.find(b"<") or head.rfind(b">") < head.rfind(
-                    b"<"
-                ):
+                if tail.find(b">") < tail.find(b"<") or head.rfind(b">") < head.rfind(b"<"):
                     # There is an incomplete tag in either the head or tail.
                     # This can happen for some badly formed KF8 files
                     logger.debug(
-                        "The fragment table for %s has incorrect insert position. Calculating manually."
-                        % skelname
+                        "The fragment table for %s has incorrect insert position. Calculating manually." % skelname
                     )
                     bp, ep = locate_beg_end_of_tag(skeleton, aidtext)
                     if bp != ep:
@@ -336,10 +314,7 @@ class K8Processor:
                 logger.debug(fi)
             logger.debug("\n")
 
-            logger.debug(
-                "\nXHTML File Part Position Information: %d entries"
-                % len(self.partinfo)
-            )
+            logger.debug("\nXHTML File Part Position Information: %d entries" % len(self.partinfo))
             for pi in self.partinfo:
                 logger.debug(pi)
 
@@ -351,9 +326,7 @@ class K8Processor:
             #    [^'"] match any amount of chars except for the quote character
             #    \s* means match any amount of whitespace
             logger.debug("\npositions of all aid= pieces")
-            id_pattern = re.compile(
-                rb"""<[^>]*\said\s*=\s*['"]([^'"]*)['"][^>]*>""", re.IGNORECASE
-            )
+            id_pattern = re.compile(rb"""<[^>]*\said\s*=\s*['"]([^'"]*)['"][^>]*>""", re.IGNORECASE)
             for m in re.finditer(id_pattern, rawML):
                 [filename, partnum, start, end] = self.getFileInfo(m.start())
                 [seqnum, idtext] = self.getFragTblInfo(m.start())
@@ -424,9 +397,7 @@ class K8Processor:
         if fname is None:
             # pos does not exist
             # default to skeleton pos instead
-            print(
-                "Link To Position", pos, "does not exist, retargeting to top of target"
-            )
+            print("Link To Position", pos, "does not exist, retargeting to top of target")
             pos = self.skeltbl[filenum][3]
             fname, pn, skelpos, skelend = self.getFileInfo(pos)
         # an existing "id=" or "name=" attribute must exist in original xhtml otherwise it would not have worked for linking.
@@ -455,12 +426,8 @@ class K8Processor:
         #    [^'"] match any amount of chars except for the quote character
         #    \s* means match any amount of whitespace
         textblock = textblock[0:npos]
-        id_pattern = re.compile(
-            rb"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
-        )
-        name_pattern = re.compile(
-            rb"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
-        )
+        id_pattern = re.compile(rb"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE)
+        name_pattern = re.compile(rb"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE)
         aid_pattern = re.compile(rb"""<[^>]+\s(?:aid|AID)\s*=\s*['"]([^'"]+)['"]""")
         for tag in reverse_tag_iter(textblock):
             # any ids in the body should default to top of file
@@ -559,12 +526,8 @@ class K8Processor:
         #    [^'"] match any amount of chars except for the quote character
         #    \s* means match any amount of whitespace
         textblock = textblock[0:npos]
-        id_pattern = re.compile(
-            rb"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
-        )
-        name_pattern = re.compile(
-            rb"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE
-        )
+        id_pattern = re.compile(rb"""<[^>]*\sid\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE)
+        name_pattern = re.compile(rb"""<[^>]*\sname\s*=\s*['"]([^'"]*)['"]""", re.IGNORECASE)
         for tag in reverse_tag_iter(textblock):
             # any ids in the body should default to top of file
             if tag[0:6] == b"<body ":

@@ -9,8 +9,8 @@ Convert from Mobi ML to XHTML
 """
 
 import os
-import sys
 import re
+import sys
 
 SPECIAL_HANDLING_TAGS = {
     "?xml": ("xmlheader", -1),
@@ -36,7 +36,7 @@ SELF_CLOSING_TAGS = [
 ]
 
 
-class MobiMLConverter(object):
+class MobiMLConverter:
     PAGE_BREAK_PAT = re.compile(r"(<[/]{0,1}mbp:pagebreak\s*[/]{0,1}>)+", re.IGNORECASE)
     IMAGE_ATTRS = ("lowrecindex", "recindex", "hirecindex")
 
@@ -45,9 +45,7 @@ class MobiMLConverter(object):
         self.base_css_rules += "p { margin: 0em }\n"
         self.base_css_rules += ".bold { font-weight: bold }\n"
         self.base_css_rules += ".italic { font-style: italic }\n"
-        self.base_css_rules += (
-            ".mbp_pagebreak { page-break-after: always; margin: 0; display: block }\n"
-        )
+        self.base_css_rules += ".mbp_pagebreak { page-break-after: always; margin: 0; display: block }\n"
         self.tag_css_rules = {}
         self.tag_css_rule_cnt = 0
         self.path = []
@@ -62,9 +60,7 @@ class MobiMLConverter(object):
         self.font_history = []
 
     def cleanup_html(self):
-        self.wipml = re.sub(
-            r'<div height="0(pt|px|ex|em|%){0,1}"></div>', "", self.wipml
-        )
+        self.wipml = re.sub(r'<div height="0(pt|px|ex|em|%){0,1}"></div>', "", self.wipml)
         self.wipml = self.wipml.replace("\r\n", "\n")
         self.wipml = self.wipml.replace("> <", ">\n<")
         self.wipml = self.wipml.replace("<mbp: ", "<mbp:")
@@ -72,9 +68,7 @@ class MobiMLConverter(object):
         self.wipml = self.wipml.replace("<br></br>", "<br/>")
 
     def replace_page_breaks(self):
-        self.wipml = self.PAGE_BREAK_PAT.sub(
-            '<div class="mbp_pagebreak" />', self.wipml
-        )
+        self.wipml = self.PAGE_BREAK_PAT.sub('<div class="mbp_pagebreak" />', self.wipml)
 
     # parse leading text of ml and tag
     def parseml(self):
@@ -125,7 +119,7 @@ class MobiMLConverter(object):
         if tname == "!doctype":
             tname = "!DOCTYPE"
         # special cases
-        if tname in SPECIAL_HANDLING_TAGS.keys():
+        if tname in SPECIAL_HANDLING_TAGS:
             ttype, backstep = SPECIAL_HANDLING_TAGS[tname]
             tattr["special"] = s[p:backstep]
         if ttype is None:
@@ -192,11 +186,7 @@ class MobiMLConverter(object):
                 ttype, tname, tattr = self.parsetag(tag)
 
                 # If we run into a DTD or xml declarations inside the body ... bail.
-                if (
-                    tname in SPECIAL_HANDLING_TAGS.keys()
-                    and tname != "comment"
-                    and body_done
-                ):
+                if tname in SPECIAL_HANDLING_TAGS and tname != "comment" and body_done:
                     htmlstr += "\n</body></html>"
                     break
 
@@ -214,29 +204,22 @@ class MobiMLConverter(object):
                     "single",
                     "single_ext",
                 ):
-                    tname = "removeme:{0}".format(tname)
+                    tname = f"removeme:{tname}"
                     tattr = None
-                if (
-                    tname in ("guide", "ncx", "reference", "font", "span")
-                    and ttype == "end"
-                ):
-                    if self.path[-1] == "removeme:{0}".format(tname):
-                        tname = "removeme:{0}".format(tname)
+                if tname in ("guide", "ncx", "reference", "font", "span") and ttype == "end":
+                    if self.path[-1] == f"removeme:{tname}":
+                        tname = f"removeme:{tname}"
                         tattr = None
 
                 # Get rid of font tags that only have a color attribute.
                 if tname == "font" and ttype in ("begin", "single", "single_ext"):
                     if "color" in tattr.keys() and len(tattr.keys()) == 1:
-                        tname = "removeme:{0}".format(tname)
+                        tname = f"removeme:{tname}"
                         tattr = None
 
                 # Get rid of empty spans in the markup.
-                if (
-                    tname == "span"
-                    and ttype in ("begin", "single", "single_ext")
-                    and not len(tattr)
-                ):
-                    tname = "removeme:{0}".format(tname)
+                if tname == "span" and ttype in ("begin", "single", "single_ext") and not len(tattr):
+                    tname = f"removeme:{tname}"
 
                 # need to handle fonts outside of the normal methods
                 # so fonts tags won't be added to the self.path since we keep track
@@ -286,7 +269,7 @@ class MobiMLConverter(object):
                             self.path.pop()
                     self.path.pop()
 
-                if tname == "removeme:{0}".format(tname):
+                if tname == f"removeme:{tname}":
                     if ttype in ("begin", "single", "single_ext"):
                         skip = True
                     else:
@@ -304,9 +287,7 @@ class MobiMLConverter(object):
                     htmlstr += "\n"
                     # also add in metadata and style link tags
                     htmlstr += self.meta
-                    htmlstr += (
-                        '<link href="styles.css" rel="stylesheet" type="text/css" />\n'
-                    )
+                    htmlstr += '<link href="styles.css" rel="stylesheet" type="text/css" />\n'
                     head_done = True
 
                 if tname == "body" and ttype == "begin" and not body_done:
@@ -350,11 +331,7 @@ class MobiMLConverter(object):
             return ""
         if ttype == "end":
             return "</%s>" % tname
-        if (
-            ttype in SPECIAL_HANDLING_TYPES
-            and tattr is not None
-            and "special" in tattr.keys()
-        ):
+        if ttype in SPECIAL_HANDLING_TYPES and tattr is not None and "special" in tattr.keys():
             info = tattr["special"]
             if ttype == "comment":
                 return "<%s %s-->" % tname, info
@@ -439,12 +416,7 @@ class MobiMLConverter(object):
 
         if "height" in tattr.keys():
             height = tattr.pop("height").strip()
-            if (
-                height
-                and "<" not in height
-                and ">" not in height
-                and re.search(r"\d+", height)
-            ):
+            if height and "<" not in height and ">" not in height and re.search(r"\d+", height):
                 if tname in ("table", "td", "tr"):
                     pass
                 elif tname == "img":
@@ -487,7 +459,7 @@ class MobiMLConverter(object):
                     try:
                         float(sz)
                     except ValueError:
-                        if sz in size_map.keys():
+                        if sz in size_map:
                             sz = size_map[sz]
                     else:
                         if sz.startswith("-") or sz.startswith("+"):
@@ -507,9 +479,7 @@ class MobiMLConverter(object):
                     if val.lower().endswith("em"):
                         try:
                             nval = float(val[:-2])
-                            nval *= 16 * (
-                                168.451 / 72
-                            )  # Assume this was set using the Kindle profile
+                            nval *= 16 * (168.451 / 72)  # Assume this was set using the Kindle profile
                             tattr[attr] = "%dpx" % int(nval)
                         except:
                             del tattr[attr]

@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 import shutil
+import tempfile
+from os.path import basename, exists, join, splitext
 
 from loguru import logger
-import tempfile
-from os.path import basename, splitext, exists, join
+
 from mobi.kindleunpack import unpackBook
 
 

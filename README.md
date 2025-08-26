@@ -16,7 +16,7 @@ tempdir, filepath = mobi.extract("mybook.mobi")
 ```
 
 'tempdir' is the path where the mobi is unpacked
-'filepath' is the path to either an epub, html or pdf file depending on the mobi type 
+'filepath' is the path to either an epub, html or pdf file depending on the mobi type
 
 | NOTE: You are responsible to delete the generated tempdir! |
 | --- |

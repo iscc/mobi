@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
-from .compatibility_utils import unicode_str
 import os
-from .unipath import pathof
+import re
+
 from loguru import logger
 
-import re
+from .compatibility_utils import unicode_str
+from .unipath import pathof
 
 # note: re requites the pattern to be the exact same type as the data to be searched in python3
 # but u"" is not allowed for the pattern itself only b""
@@ -26,7 +25,7 @@ DEFAULT_TITLE = "Navigation"
 """ The default title for the navigation document. """
 
 
-class NAVProcessor(object):
+class NAVProcessor:
     def __init__(self, files):
         self.files = files
         self.navname = NAVIGATION_FINENAME
@@ -112,9 +111,7 @@ class NAVProcessor(object):
                 )
                 return ""
             if DEBUG_NAV:
-                logger.debug(
-                    "recursINDX (in buildTOC) lvl %d from %d to %d" % (lvl, start, end)
-                )
+                logger.debug("recursINDX (in buildTOC) lvl %d from %d to %d" % (lvl, start, end))
             xhtml = ""
             if start <= 0:
                 start = 0
@@ -131,22 +128,20 @@ class NAVProcessor(object):
                 htmlfile = e["filename"]
                 desttag = e["idtag"]
                 text = e["text"]
-                if not e["hlvl"] == lvl:
+                if e["hlvl"] != lvl:
                     continue
                 num += 1
                 if desttag == "":
                     link = htmlfile
                 else:
-                    link = "{:s}#{:s}".format(htmlfile, desttag)
+                    link = f"{htmlfile:s}#{desttag:s}"
                 xhtml += indent2 + "<li>"
-                entry = '<a href="{:}">{:s}</a>'.format(link, text)
+                entry = f'<a href="{link}">{text:s}</a>'
                 xhtml += entry
                 # recurs
                 if e["child1"] >= 0:
                     xhtml += "\n"
-                    xhtmlrec, max_lvl, num = recursINDX(
-                        max_lvl, num, lvl + 1, e["child1"], e["childn"] + 1
-                    )
+                    xhtmlrec, max_lvl, num = recursINDX(max_lvl, num, lvl + 1, e["child1"], e["childn"] + 1)
                     xhtml += xhtmlrec
                     xhtml += indent2
                 # close entry
@@ -155,7 +150,7 @@ class NAVProcessor(object):
             return xhtml, max_lvl, num
 
         data, max_lvl, num = recursINDX()
-        if not len(indx_data) == num:
+        if len(indx_data) != num:
             logger.debug(
                 "Warning (in buildTOC): different number of entries in NCX",
                 len(indx_data),
@@ -171,8 +166,8 @@ class NAVProcessor(object):
         nav_header += '<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>'
         nav_header += '<html xmlns="http://www.w3.org/1999/xhtml"'
         nav_header += ' xmlns:epub="http://www.idpf.org/2007/ops"'
-        nav_header += ' lang="{0:s}" xml:lang="{0:s}">\n'.format(lang)
-        nav_header += "<head>\n<title>{:s}</title>\n".format(title)
+        nav_header += f' lang="{lang:s}" xml:lang="{lang:s}">\n'
+        nav_header += f"<head>\n<title>{title:s}</title>\n"
         nav_header += '<meta charset="UTF-8" />\n'
         nav_header += '<style type="text/css">\n'
         nav_header += "nav#landmarks { display:none; }\n"
@@ -194,9 +189,7 @@ class NAVProcessor(object):
     def writeNAV(self, ncx_data, guidetext, metadata):
         # build the xhtml
         # logger.debug("Write Navigation Document.")
-        xhtml = self.buildNAV(
-            ncx_data, guidetext, metadata.get("Title")[0], metadata.get("Language")[0]
-        )
+        xhtml = self.buildNAV(ncx_data, guidetext, metadata.get("Title")[0], metadata.get("Language")[0])
         fname = os.path.join(self.files.k8text, self.navname)
         with open(pathof(fname), "wb") as f:
             f.write(xhtml.encode("utf-8"))

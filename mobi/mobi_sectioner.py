@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
-
-from .compatibility_utils import PY2, hexlify, bstr, bord, bchar
-from loguru import logger
 
 import datetime
+
+from loguru import logger
+
+from .compatibility_utils import PY2, bchar, bord, bstr, hexlify
 
 if PY2:
     range = xrange
@@ -39,13 +38,9 @@ def describe(data):
 
 def datetimefrompalmtime(palmtime):
     if palmtime > 0x7FFFFFFF:
-        pythondatetime = datetime.datetime(
-            year=1904, month=1, day=1
-        ) + datetime.timedelta(seconds=palmtime)
+        pythondatetime = datetime.datetime(year=1904, month=1, day=1) + datetime.timedelta(seconds=palmtime)
     else:
-        pythondatetime = datetime.datetime(
-            year=1970, month=1, day=1
-        ) + datetime.timedelta(seconds=palmtime)
+        pythondatetime = datetime.datetime(year=1970, month=1, day=1) + datetime.timedelta(seconds=palmtime)
     return pythondatetime
 
 
@@ -59,9 +54,7 @@ class Sectionizer:
         self.ident = self.palmheader[0x3C : 0x3C + 8]
         (self.num_sections,) = struct.unpack_from(b">H", self.palmheader, 76)
         self.filelength = len(self.data)
-        sectionsdata = struct.unpack_from(
-            bstr(">%dL" % (self.num_sections * 2)), self.data, 78
-        ) + (self.filelength, 0)
+        sectionsdata = struct.unpack_from(bstr(">%dL" % (self.num_sections * 2)), self.data, 78) + (self.filelength, 0)
         self.sectionoffsets = sectionsdata[::2]
         self.sectionattributes = sectionsdata[1::2]
         self.sectiondescriptions = ["" for x in range(self.num_sections + 1)]
@@ -97,9 +90,7 @@ class Sectionizer:
         if section < len(self.sectiondescriptions):
             self.sectiondescriptions[section] = description
         else:
-            logger.debug(
-                "Section out of range: %d, description %s" % (section, description)
-            )
+            logger.debug("Section out of range: %d, description %s" % (section, description))
 
     def dumppalmheader(self):
         logger.debug("Palm Database Header")
@@ -139,54 +130,23 @@ class Sectionizer:
             print(")")
         else:
             print("")
-        logger.debug(
-            "File version: %d" % struct.unpack_from(b">H", self.palmheader, 34)[0]
-        )
+        logger.debug("File version: %d" % struct.unpack_from(b">H", self.palmheader, 34)[0])
         (dbcreation,) = struct.unpack_from(b">L", self.palmheader, 36)
-        logger.debug(
-            "Creation Date: "
-            + str(datetimefrompalmtime(dbcreation))
-            + (" (0x%0X)" % dbcreation)
-        )
+        logger.debug("Creation Date: " + str(datetimefrompalmtime(dbcreation)) + (" (0x%0X)" % dbcreation))
         (dbmodification,) = struct.unpack_from(b">L", self.palmheader, 40)
-        logger.debug(
-            "Modification Date: "
-            + str(datetimefrompalmtime(dbmodification))
-            + (" (0x%0X)" % dbmodification)
-        )
+        logger.debug("Modification Date: " + str(datetimefrompalmtime(dbmodification)) + (" (0x%0X)" % dbmodification))
         (dbbackup,) = struct.unpack_from(b">L", self.palmheader, 44)
         if dbbackup != 0:
-            logger.debug(
-                "Backup Date: "
-                + str(datetimefrompalmtime(dbbackup))
-                + (" (0x%0X)" % dbbackup)
-            )
-        logger.debug(
-            "Modification No.: %d" % struct.unpack_from(b">L", self.palmheader, 48)[0]
-        )
-        logger.debug(
-            "App Info offset: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 52)[0]
-        )
-        logger.debug(
-            "Sort Info offset: 0x%0X"
-            % struct.unpack_from(b">L", self.palmheader, 56)[0]
-        )
-        logger.debug(
-            "Type/Creator: %s/%s"
-            % (repr(self.palmheader[60:64]), repr(self.palmheader[64:68]))
-        )
-        logger.debug(
-            "Unique seed: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 68)[0]
-        )
+            logger.debug("Backup Date: " + str(datetimefrompalmtime(dbbackup)) + (" (0x%0X)" % dbbackup))
+        logger.debug("Modification No.: %d" % struct.unpack_from(b">L", self.palmheader, 48)[0])
+        logger.debug("App Info offset: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 52)[0])
+        logger.debug("Sort Info offset: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 56)[0])
+        logger.debug("Type/Creator: %s/%s" % (repr(self.palmheader[60:64]), repr(self.palmheader[64:68])))
+        logger.debug("Unique seed: 0x%0X" % struct.unpack_from(b">L", self.palmheader, 68)[0])
         (expectedzero,) = struct.unpack_from(b">L", self.palmheader, 72)
         if expectedzero != 0:
-            logger.debug(
-                "Should be zero but isn't: %d"
-                % struct.unpack_from(b">L", self.palmheader, 72)[0]
-            )
-        logger.debug(
-            "Number of sections: %d" % struct.unpack_from(b">H", self.palmheader, 76)[0]
-        )
+            logger.debug("Should be zero but isn't: %d" % struct.unpack_from(b">L", self.palmheader, 72)[0])
+        logger.debug("Number of sections: %d" % struct.unpack_from(b">H", self.palmheader, 76)[0])
         return
 
     def loadSection(self, section):

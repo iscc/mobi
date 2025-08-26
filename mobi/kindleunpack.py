@@ -1,21 +1,18 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
 import os
+
 from loguru import logger
 
 __path__ = ["lib", os.path.dirname(os.path.realpath(__file__)), "kindleunpack"]
 
-import sys
 import codecs
+import sys
 import traceback
 
-from .compatibility_utils import PY2, binary_type, utf8_str, unicode_str
-from .compatibility_utils import unicode_argv, add_cp65001_codec
-from .compatibility_utils import hexlify
+from .compatibility_utils import PY2, add_cp65001_codec, binary_type, hexlify, unicode_argv, unicode_str, utf8_str
 
 add_cp65001_codec()
 
@@ -172,11 +169,11 @@ KINDLEGENLOG_FILENAME = "kindlegenbuild.log"
 K8_BOUNDARY = b"BOUNDARY"
 """ The section data that divides K8 mobi ebooks. """
 
-import os
-import struct
-import re
-import zlib
 import getopt
+import os
+import re
+import struct
+import zlib
 
 
 class unpackException(Exception):
@@ -184,28 +181,25 @@ class unpackException(Exception):
 
 
 # import the kindleunpack support libraries
-from .unpack_structure import fileNames
-from .mobi_sectioner import Sectionizer, describe
+from .mobi_cover import CoverProcessor, get_image_type
+from .mobi_dict import dictSupport
 from .mobi_header import MobiHeader, dump_contexth
-from .mobi_utils import toBase32
-from .mobi_opf import OPFProcessor
 from .mobi_html import HTMLProcessor, XHTMLK8Processor
-from .mobi_ncx import ncxExtract
 from .mobi_k8proc import K8Processor
-from .mobi_split import mobi_split
 from .mobi_k8resc import K8RESCProcessor
 from .mobi_nav import NAVProcessor
-from .mobi_cover import CoverProcessor, get_image_type
+from .mobi_ncx import ncxExtract
+from .mobi_opf import OPFProcessor
 from .mobi_pagemap import PageMapProcessor
-from .mobi_dict import dictSupport
+from .mobi_sectioner import Sectionizer, describe
+from .mobi_split import mobi_split
+from .mobi_utils import toBase32
+from .unpack_structure import fileNames
 
 
 def processSRCS(i, files, rscnames, sect, data):
     # extract the source zip archive and save it.
-    logger.debug(
-        "File contains kindlegen source archive, extracting as %s"
-        % KINDLEGENSRC_FILENAME
-    )
+    logger.debug("File contains kindlegen source archive, extracting as %s" % KINDLEGENSRC_FILENAME)
     srcname = os.path.join(files.outdir, KINDLEGENSRC_FILENAME)
     with open(pathof(srcname), "wb") as f:
         f.write(data[16:])
@@ -232,13 +226,9 @@ def processPAGE(i, files, rscnames, sect, data, mh, pagemapproc):
         apnx_meta["format"] = "MOBI_7"
     apnx_data = pagemapproc.generateAPNX(apnx_meta)
     if mh.isK8():
-        outname = os.path.join(
-            files.outdir, "mobi8-" + files.getInputFileBasename() + ".apnx"
-        )
+        outname = os.path.join(files.outdir, "mobi8-" + files.getInputFileBasename() + ".apnx")
     else:
-        outname = os.path.join(
-            files.outdir, "mobi7-" + files.getInputFileBasename() + ".apnx"
-        )
+        outname = os.path.join(files.outdir, "mobi7-" + files.getInputFileBasename() + ".apnx")
     with open(pathof(outname), "wb") as f:
         f.write(apnx_data)
     return rscnames, pagemapproc
@@ -246,9 +236,7 @@ def processPAGE(i, files, rscnames, sect, data, mh, pagemapproc):
 
 def processCMET(i, files, rscnames, sect, data):
     # extract the build log
-    logger.debug(
-        "File contains kindlegen build log, extracting as %s" % KINDLEGENLOG_FILENAME
-    )
+    logger.debug("File contains kindlegen build log, extracting as %s" % KINDLEGENLOG_FILENAME)
     srcname = os.path.join(files.outdir, KINDLEGENLOG_FILENAME)
     with open(pathof(srcname), "wb") as f:
         f.write(data[10:])
@@ -272,13 +260,9 @@ def processFONT(i, files, rscnames, sect, data, obfuscate_data, beg, rsc_ptr):
     font_error = False
     font_data = data
     try:
-        usize, fflags, dstart, xor_len, xor_start = struct.unpack_from(
-            b">LLLLL", data, 4
-        )
+        usize, fflags, dstart, xor_len, xor_start = struct.unpack_from(b">LLLLL", data, 4)
     except:
-        logger.debug(
-            "Failed to extract font: {0:s} from section {1:d}".format(fontname, i)
-        )
+        logger.debug(f"Failed to extract font: {fontname:s} from section {i:d}")
         font_error = True
         ext = ".failed"
         pass
@@ -311,7 +295,7 @@ def processFONT(i, files, rscnames, sect, data, obfuscate_data, beg, rsc_ptr):
         with open(pathof(outfnt), "wb") as f:
             f.write(font_data)
         rscnames.append(fontname)
-        sect.setsectiondescription(i, "Font {0:s}".format(fontname))
+        sect.setsectiondescription(i, f"Font {fontname:s}")
         if rsc_ptr == -1:
             rsc_ptr = i - beg
     return rscnames, obfuscate_data, rsc_ptr
@@ -324,13 +308,9 @@ def processCRES(i, files, rscnames, sect, data, beg, rsc_ptr, use_hd):
     imgtype = get_image_type(None, data)
 
     if imgtype is None:
-        logger.debug(
-            "Warning: CRES Section %s does not contain a recognised resource" % i
-        )
+        logger.debug("Warning: CRES Section %s does not contain a recognised resource" % i)
         rscnames.append(None)
-        sect.setsectiondescription(
-            i, "Mysterious CRES data, first four bytes %s" % describe(data[0:4])
-        )
+        sect.setsectiondescription(i, "Mysterious CRES data, first four bytes %s" % describe(data[0:4]))
         if DUMP:
             fname = "unknown%05d.dat" % i
             outname = os.path.join(files.outdir, fname)
@@ -338,8 +318,7 @@ def processCRES(i, files, rscnames, sect, data, beg, rsc_ptr, use_hd):
                 f.write(data)
             sect.setsectiondescription(
                 i,
-                "Mysterious CRES data, first four bytes %s extracting as %s"
-                % (describe(data[0:4]), fname),
+                "Mysterious CRES data, first four bytes %s extracting as %s" % (describe(data[0:4]), fname),
             )
         rsc_ptr += 1
         return rscnames, rsc_ptr
@@ -351,12 +330,12 @@ def processCRES(i, files, rscnames, sect, data, beg, rsc_ptr, use_hd):
     else:
         imgname = "HDimage%05d.%s" % (i, imgtype)
         imgdest = files.hdimgdir
-    logger.debug("Extracting HD image: {0:s} from section {1:d}".format(imgname, i))
+    logger.debug(f"Extracting HD image: {imgname:s} from section {i:d}")
     outimg = os.path.join(imgdest, imgname)
     with open(pathof(outimg), "wb") as f:
         f.write(data)
     rscnames.append(None)
-    sect.setsectiondescription(i, "Optional HD Image {0:s}".format(imgname))
+    sect.setsectiondescription(i, f"Optional HD Image {imgname:s}")
     rsc_ptr += 1
     return rscnames, rsc_ptr
 
@@ -423,9 +402,7 @@ def processImage(i, files, rscnames, sect, data, beg, rsc_ptr, cover_offset):
     if imgtype is None:
         logger.debug("Warning: Section %s does not contain a recognised resource" % i)
         rscnames.append(None)
-        sect.setsectiondescription(
-            i, "Mysterious Section, first four bytes %s" % describe(data[0:4])
-        )
+        sect.setsectiondescription(i, "Mysterious Section, first four bytes %s" % describe(data[0:4]))
         if DUMP:
             fname = "unknown%05d.dat" % i
             outname = os.path.join(files.outdir, fname)
@@ -433,20 +410,19 @@ def processImage(i, files, rscnames, sect, data, beg, rsc_ptr, cover_offset):
                 f.write(data)
             sect.setsectiondescription(
                 i,
-                "Mysterious Section, first four bytes %s extracting as %s"
-                % (describe(data[0:4]), fname),
+                "Mysterious Section, first four bytes %s extracting as %s" % (describe(data[0:4]), fname),
             )
         return rscnames, rsc_ptr
 
     imgname = "image%05d.%s" % (i, imgtype)
     if cover_offset is not None and i == beg + cover_offset:
         imgname = "cover%05d.%s" % (i, imgtype)
-    logger.debug("Extracting image: {0:s} from section {1:d}".format(imgname, i))
+    logger.debug(f"Extracting image: {imgname:s} from section {i:d}")
     outimg = os.path.join(files.imgdir, imgname)
     with open(pathof(outimg), "wb") as f:
         f.write(data)
     rscnames.append(imgname)
-    sect.setsectiondescription(i, "Image {0:s}".format(imgname))
+    sect.setsectiondescription(i, f"Image {imgname:s}")
     if rsc_ptr == -1:
         rsc_ptr = i - beg
     return rscnames, rsc_ptr
@@ -484,8 +460,7 @@ def processPrintReplica(metadata, files, rscnames, mh):
                 else:
                     entryName = os.path.join(
                         files.outdir,
-                        files.getInputFileBasename()
-                        + (".%03d.%03d.data" % ((i + 1), j)),
+                        files.getInputFileBasename() + (".%03d.%03d.data" % ((i + 1), j)),
                     )
                 with open(pathof(entryName), "wb") as f:
                     f.write(rawML[sectionOffset : (sectionOffset + sectionLength)])
@@ -705,9 +680,7 @@ def processMobi7(mh, metadata, sect, files, rscnames):
     guidetext = b""
     # no pagemap support for older mobis
     # pagemapxml = None
-    guidematch = re.search(
-        rb"""<guide>(.*)</guide>""", srctext, re.IGNORECASE + re.DOTALL
-    )
+    guidematch = re.search(rb"""<guide>(.*)</guide>""", srctext, re.IGNORECASE + re.DOTALL)
     if guidematch:
         guidetext = guidematch.group(1)
         # sometimes old mobi guide from srctext horribly written so need to clean up
@@ -730,9 +703,7 @@ def processMobi7(mh, metadata, sect, files, rscnames):
                 guidepieces[i] = reftag
         guidetext = b"".join(guidepieces)
         replacetext = rb'''href="''' + utf8_str(fileinfo[0][2]) + rb'''#filepos\1"'''
-        guidetext = re.sub(
-            rb"""filepos=['"]{0,1}0*(\d+)['"]{0,1}""", replacetext, guidetext
-        )
+        guidetext = re.sub(rb"""filepos=['"]{0,1}0*(\d+)['"]{0,1}""", replacetext, guidetext)
         guidetext += b"\n"
 
     if "StartOffset" in metadata:
@@ -754,9 +725,7 @@ def processMobi7(mh, metadata, sect, files, rscnames):
         guidetext = guidetext.decode(mh.codec)
 
     # create an OPF
-    opf = OPFProcessor(
-        files, metadata, fileinfo, rscnames, ncx.isNCX, mh, usedmap, guidetext=guidetext
-    )
+    opf = OPFProcessor(files, metadata, fileinfo, rscnames, ncx.isNCX, mh, usedmap, guidetext=guidetext)
     opf.writeOPF()
 
 
@@ -789,29 +758,21 @@ def processUnknownSections(mh, sect, files, K8Boundary):
                     outname = os.path.join(files.outdir, fname)
                     with open(pathof(outname), "wb") as f:
                         f.write(data)
-                    logger.debug(
-                        "Extracting %s: %s from section %d" % (description, fname, i)
-                    )
+                    logger.debug("Extracting %s: %s from section %d" % (description, fname, i))
                     description = description + ", extracting as %s" % fname
             else:
                 fname = "unknown%05d.dat" % i
-                description = "Mysterious Section, first four bytes %s" % describe(
-                    data[0:4]
-                )
+                description = "Mysterious Section, first four bytes %s" % describe(data[0:4])
                 if DUMP:
                     outname = os.path.join(files.outdir, fname)
                     with open(pathof(outname), "wb") as f:
                         f.write(data)
-                    logger.debug(
-                        "Extracting %s: %s from section %d" % (description, fname, i)
-                    )
+                    logger.debug("Extracting %s: %s from section %d" % (description, fname, i))
                     description = description + ", extracting as %s" % fname
             sect.setsectiondescription(i, description)
 
 
-def process_all_mobi_headers(
-    files, apnxfile, sect, mhlst, K8Boundary, k8only=False, epubver="2", use_hd=False
-):
+def process_all_mobi_headers(files, apnxfile, sect, mhlst, K8Boundary, k8only=False, epubver="2", use_hd=False):
     global DUMP
     global WRITE_RAW_DATA
     rscnames = []
@@ -830,17 +791,11 @@ def process_all_mobi_headers(
             logger.debug("Processing PrintReplica section of book...")
         else:
             if mh.version == 0:
-                sect.setsectiondescription(
-                    mh.start, "PalmDoc Header".format(mh.version)
-                )
+                sect.setsectiondescription(mh.start, "PalmDoc Header".format())
             else:
-                sect.setsectiondescription(
-                    mh.start, "Mobipocket {0:d} Header".format(mh.version)
-                )
+                sect.setsectiondescription(mh.start, f"Mobipocket {mh.version:d} Header")
             mhname = os.path.join(files.outdir, "header.dat")
-            logger.debug(
-                "Processing Mobipocket {0:d} section of book...".format(mh.version)
-            )
+            logger.debug(f"Processing Mobipocket {mh.version:d} section of book...")
 
         if DUMP:
             # write out raw mobi header data
@@ -883,19 +838,13 @@ def process_all_mobi_headers(
                     outname = os.path.join(files.outdir, fname)
                     with open(pathof(outname), "wb") as f:
                         f.write(data)
-                    logger.debug(
-                        "Dumping section {0:d} type {1:s} to file {2:s} ".format(
-                            i, unicode_str(type), outname
-                        )
-                    )
-                sect.setsectiondescription(i, "Type {0:s}".format(unicode_str(type)))
+                    logger.debug(f"Dumping section {i:d} type {unicode_str(type):s} to file {outname:s} ")
+                sect.setsectiondescription(i, f"Type {unicode_str(type):s}")
                 rscnames.append(None)
             elif type == b"SRCS":
                 rscnames = processSRCS(i, files, rscnames, sect, data)
             elif type == b"PAGE":
-                rscnames, pagemapproc = processPAGE(
-                    i, files, rscnames, sect, data, mh, pagemapproc
-                )
+                rscnames, pagemapproc = processPAGE(i, files, rscnames, sect, data, mh, pagemapproc)
             elif type == b"CMET":
                 rscnames = processCMET(i, files, rscnames, sect, data)
             elif type == b"FONT":
@@ -903,9 +852,7 @@ def process_all_mobi_headers(
                     i, files, rscnames, sect, data, obfuscate_data, beg, rsc_ptr
                 )
             elif type == b"CRES":
-                rscnames, rsc_ptr = processCRES(
-                    i, files, rscnames, sect, data, beg, rsc_ptr, use_hd
-                )
+                rscnames, rsc_ptr = processCRES(i, files, rscnames, sect, data, beg, rsc_ptr, use_hd)
             elif type == b"CONT":
                 rscnames = processCONT(i, files, rscnames, sect, data)
             elif type == b"kind":
@@ -924,9 +871,7 @@ def process_all_mobi_headers(
                 rscnames.append(None)
             else:
                 # if reached here should be an image ow treat as unknown
-                rscnames, rsc_ptr = processImage(
-                    i, files, rscnames, sect, data, beg, rsc_ptr, cover_offset
-                )
+                rscnames, rsc_ptr = processImage(i, files, rscnames, sect, data, beg, rsc_ptr, cover_offset)
         # done unpacking resources
 
         # Print Replica
@@ -993,10 +938,7 @@ def unpackBook(
     if DUMP:
         sect.dumppalmheader()
     else:
-        logger.debug(
-            "Palm DB type: %s, %d sections."
-            % (sect.ident.decode("utf-8"), sect.num_sections)
-        )
+        logger.debug("Palm DB type: %s, %d sections." % (sect.ident.decode("utf-8"), sect.num_sections))
 
     # scan sections to see if this is a compound mobi file (K8 format)
     # and build a list of all mobi headers to process.
@@ -1025,32 +967,24 @@ def unpackBook(
                     K8Boundary = i
                     break
         if hasK8:
-            logger.debug(
-                "Unpacking a Combination M{0:d}/KF8 book...".format(mh.version)
-            )
+            logger.debug(f"Unpacking a Combination M{mh.version:d}/KF8 book...")
             if SPLIT_COMBO_MOBIS:
                 # if this is a combination mobi7-mobi8 file split them up
                 mobisplit = mobi_split(infile)
                 if mobisplit.combo:
-                    outmobi7 = os.path.join(
-                        files.outdir, "mobi7-" + files.getInputFileBasename() + ".mobi"
-                    )
-                    outmobi8 = os.path.join(
-                        files.outdir, "mobi8-" + files.getInputFileBasename() + ".azw3"
-                    )
+                    outmobi7 = os.path.join(files.outdir, "mobi7-" + files.getInputFileBasename() + ".mobi")
+                    outmobi8 = os.path.join(files.outdir, "mobi8-" + files.getInputFileBasename() + ".azw3")
                     with open(pathof(outmobi7), "wb") as f:
                         f.write(mobisplit.getResult7())
                     with open(pathof(outmobi8), "wb") as f:
                         f.write(mobisplit.getResult8())
         else:
-            logger.debug("Unpacking a Mobipocket {0:d} book...".format(mh.version))
+            logger.debug(f"Unpacking a Mobipocket {mh.version:d} book...")
 
     if hasK8:
         files.makeK8Struct()
 
-    process_all_mobi_headers(
-        files, apnxfile, sect, mhlst, K8Boundary, False, epubver, use_hd
-    )
+    process_all_mobi_headers(files, apnxfile, sect, mhlst, K8Boundary, False, epubver, use_hd)
 
     if DUMP:
         sect.dumpsectionsinfo()
@@ -1067,22 +1001,12 @@ def usage(progname):
     print("  %s -r -s -p apnxfile -d -h --epub_version= infile [outdir]" % progname)
     print("Options:")
     print("    -h                 print this help message")
-    print(
-        "    -i                 use HD Images, if present, to overwrite reduced resolution images"
-    )
+    print("    -i                 use HD Images, if present, to overwrite reduced resolution images")
     print("    -s                 split combination mobis into mobi7 and mobi8 ebooks")
-    print(
-        "    -p APNXFILE        path to an .apnx file associated with the azw3 input (optional)"
-    )
-    print(
-        "    --epub_version=    specify epub version to unpack to: 2, 3, A (for automatic) or "
-    )
-    print(
-        "                         F (force to fit to epub2 definitions), default is 2"
-    )
-    print(
-        "    -d                 dump headers and other info to output and extra files"
-    )
+    print("    -p APNXFILE        path to an .apnx file associated with the azw3 input (optional)")
+    print("    --epub_version=    specify epub version to unpack to: 2, 3, A (for automatic) or ")
+    print("                         F (force to fit to epub2 definitions), default is 2")
+    print("    -d                 dump headers and other info to output and extra files")
     print("    -r                 write raw data to the output folder")
 
 
@@ -1092,13 +1016,9 @@ def main(argv=unicode_argv()):
     global SPLIT_COMBO_MOBIS
 
     print("KindleUnpack v0.82")
-    print(
-        "   Based on initial mobipocket version Copyright © 2009 Charles M. Hannum <root@ihack.net>"
-    )
+    print("   Based on initial mobipocket version Copyright © 2009 Charles M. Hannum <root@ihack.net>")
     print("   Extensive Extensions and Improvements Copyright © 2009-2014 ")
-    print(
-        "       by:  P. Durrant, K. Hendricks, S. Siebert, fandrieu, DiapDealer, nickredding, tkeo."
-    )
+    print("       by:  P. Durrant, K. Hendricks, S. Siebert, fandrieu, DiapDealer, nickredding, tkeo.")
     print("   This program is free software: you can redistribute it and/or modify")
     print("   it under the terms of the GNU General Public License as published by")
     print("   the Free Software Foundation, version 3.")
@@ -1144,9 +1064,7 @@ def main(argv=unicode_argv()):
 
     infileext = os.path.splitext(infile)[1].upper()
     if infileext not in [".MOBI", ".PRC", ".AZW", ".AZW3", ".AZW4"]:
-        print(
-            "Error: first parameter must be a Kindle/Mobipocket ebook or a Kindle/Print Replica ebook."
-        )
+        print("Error: first parameter must be a Kindle/Mobipocket ebook or a Kindle/Print Replica ebook.")
         return 1
 
     try:

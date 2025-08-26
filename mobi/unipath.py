@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 # Copyright (c) 2014 Kevin B. Hendricks, John Schember, and Doug Massay
@@ -25,11 +24,10 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
 # WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import unicode_literals, division, absolute_import, print_function
-from .compatibility_utils import PY2, text_type, binary_type
-
-import sys
 import os
+import sys
+
+from .compatibility_utils import PY2, binary_type, text_type
 
 # utility routines to convert all paths to be full unicode
 

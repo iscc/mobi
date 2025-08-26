@@ -29,9 +29,82 @@ mobiunpack = "mobi.kindleunpack:main"
 [dependency-groups]
 dev = [
     "pytest",
-    "black",
+    "ruff",
+    "pre-commit",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 119
+target-version = "py39"
+exclude = [
+    ".git",
+    "__pycache__",
+    "dist",
+    "build",
+    "*.egg-info",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade (limited)
+    "SIM",  # flake8-simplify (limited)
+    "TID",  # flake8-tidy-imports
+]
+ignore = [
+    "E501",  # line too long
+    "E402",  # module import not at top of file (needed for compatibility code)
+    "E722",  # bare except (needed for compatibility)
+    "F601",  # duplicate dictionary keys (intentional in header definitions)
+    "F821",  # undefined name (false positives from Python 2 compat)
+    "B006",  # mutable data structures for defaults
+    "B007",  # unused loop variable
+    "B008",  # do not perform function calls in argument defaults
+    "B034",  # re.sub positional arguments
+    "B905",  # zip() without explicit strict parameter
+    "C401",  # unnecessary generator
+    "C414",  # unnecessary list call within sorted
+    "UP008", # super() calls
+    "UP030", # format strings positional indices
+    "UP031", # format strings (keep % formatting for now)
+    "SIM102", # nested if statements
+    "SIM105", # contextlib.suppress
+    "SIM108", # simplify if-else
+    "SIM110", # simplify for loops
+    "SIM113", # enumerate for loop
+    "SIM115", # context manager for open
+    "SIM118", # use key in dict instead of key in dict.keys()
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mobi"]
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+no_strict_optional = true
+exclude = [
+    "build/",
+    "dist/",
+    "tests/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

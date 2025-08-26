@@ -1,26 +1,22 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
-
-from .compatibility_utils import text_type
 
 from . import unipath
+from .compatibility_utils import text_type
 from .unipath import pathof
 
 DUMP = False
 """ Set to True to dump all possible information. """
 
+import binascii
 import os
-
 import re
 
 # note: re requites the pattern to be the exact same type as the data to be searched in python3
 # but u"" is not allowed for the pattern itself only b""
-
 import zipfile
-import binascii
+
 from .mobi_utils import mangle_fonts
 
 
@@ -51,9 +47,7 @@ class fileNames:
         self.hdimgdir = os.path.join(self.outdir, "HDImages")
         if not unipath.exists(self.hdimgdir):
             unipath.mkdir(self.hdimgdir)
-        self.outbase = os.path.join(
-            self.outdir, os.path.splitext(os.path.split(infile)[1])[0]
-        )
+        self.outbase = os.path.join(self.outdir, os.path.splitext(os.path.split(infile)[1])[0])
 
     def getInputFileBasename(self):
         return os.path.splitext(os.path.basename(self.infile))[0]
@@ -92,9 +86,7 @@ class fileNames:
             localfilePath = os.path.join(localname, afilename)
             realfilePath = os.path.join(currentdir, file)
             if unipath.isfile(realfilePath):
-                myzip.write(
-                    pathof(realfilePath), pathof(localfilePath), zipfile.ZIP_DEFLATED
-                )
+                myzip.write(pathof(realfilePath), pathof(localfilePath), zipfile.ZIP_DEFLATED)
             elif unipath.isdir(realfilePath):
                 self.zipUpDir(myzip, tdir, localfilePath)
 
@@ -114,11 +106,7 @@ class fileNames:
         for name in imgnames:
             if usedmap.get(name, "not used") == "used":
                 filein = os.path.join(self.imgdir, name)
-                if name.endswith(".ttf"):
-                    fileout = os.path.join(self.k8fonts, name)
-                elif name.endswith(".otf"):
-                    fileout = os.path.join(self.k8fonts, name)
-                elif name.endswith(".failed"):
+                if name.endswith(".ttf") or name.endswith(".otf") or name.endswith(".failed"):
                     fileout = os.path.join(self.k8fonts, name)
                 else:
                     fileout = os.path.join(self.k8images, name)
@@ -149,9 +137,7 @@ xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:deenc="http://ns.adobe.com/d
                 encryption += "  <enc:EncryptedData>\n"
                 encryption += '    <enc:EncryptionMethod Algorithm="http://ns.adobe.com/pdf/enc#RC"/>\n'
                 encryption += "    <enc:CipherData>\n"
-                encryption += (
-                    '      <enc:CipherReference URI="OEBPS/Fonts/' + font + '"/>\n'
-                )
+                encryption += '      <enc:CipherReference URI="OEBPS/Fonts/' + font + '"/>\n'
                 encryption += "    </enc:CipherData>\n"
                 encryption += "  </enc:EncryptedData>\n"
             encryption += "</encryption>\n"

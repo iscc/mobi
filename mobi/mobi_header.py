@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
 DEBUG_USE_ORDERED_DICTIONARY = False  # OrderedDict is supoorted >= python 2.7.
 """ set to True to use OrderedDict for MobiHeader.metadata."""
@@ -12,8 +10,9 @@ if DEBUG_USE_ORDERED_DICTIONARY:
 else:
     dict_ = dict
 
-from .compatibility_utils import PY2, unicode_str, hexlify, bord
 from loguru import logger
+
+from .compatibility_utils import PY2, bord, hexlify, unicode_str
 
 if PY2:
     range = xrange
@@ -21,9 +20,10 @@ if PY2:
 import struct
 import uuid
 
+from .mobi_uncompress import HuffcdicReader, PalmdocReader, UncompressedReader
+
 # import the mobiunpack support libraries
 from .mobi_utils import getLanguage
-from .mobi_uncompress import HuffcdicReader, PalmdocReader, UncompressedReader
 
 
 class unpackException(Exception):
@@ -172,10 +172,7 @@ def dump_contexth(cpage, extheader):
         content = extheader[pos + 8 : pos + size]
         if id in id_map_strings:
             name = id_map_strings[id]
-            logger.debug(
-                '\n    Key: "%s"\n        Value: "%s"'
-                % (name, content.decode(codec, errors="replace"))
-            )
+            logger.debug('\n    Key: "%s"\n        Value: "%s"' % (name, content.decode(codec, errors="replace")))
         elif id in id_map_values:
             name = id_map_values[id]
             if size == 9:
@@ -188,20 +185,14 @@ def dump_contexth(cpage, extheader):
                 (value,) = struct.unpack(b">L", content)
                 logger.debug('\n    Key: "%s"\n        Value: 0x%04x' % (name, value))
             else:
-                logger.debug(
-                    "\nError: Value for %s has unexpected size of %s" % (name, size)
-                )
+                logger.debug("\nError: Value for %s has unexpected size of %s" % (name, size))
         elif id in id_map_hexstrings:
             name = id_map_hexstrings[id]
-            logger.debug(
-                '\n    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content))
-            )
+            logger.debug('\n    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content)))
         else:
             logger.debug("\nWarning: Unknown metadata with id %s found" % id)
             name = str(id) + " (hex)"
-            logger.debug(
-                '    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content))
-            )
+            logger.debug('    Key: "%s"\n        Value: 0x%s' % (name, hexlify(content)))
         pos += size
     return
 
@@ -557,9 +548,7 @@ class MobiHeader:
             self.sect.setsectiondescription(huffoff, "Huffman Compression Seed")
             reader.loadHuff(self.sect.loadSection(huffoff))
             for i in range(1, huffnum):
-                self.sect.setsectiondescription(
-                    huffoff + i, "Huffman CDIC Compression Seed %d" % i
-                )
+                self.sect.setsectiondescription(huffoff + i, "Huffman CDIC Compression Seed %d" % i)
                 reader.loadCdic(self.sect.loadSection(huffoff + i))
             self.unpack = reader.unpack
         elif self.compression == 2:
@@ -596,15 +585,9 @@ class MobiHeader:
         self.exth_offset = self.length + 16
         self.exth_length = 0
         if self.hasExth:
-            (self.exth_length,) = struct.unpack_from(
-                b">L", self.header, self.exth_offset + 4
-            )
-            self.exth_length = (
-                (self.exth_length + 3) >> 2
-            ) << 2  # round to next 4 byte boundary
-            self.exth = self.header[
-                self.exth_offset : self.exth_offset + self.exth_length
-            ]
+            (self.exth_length,) = struct.unpack_from(b">L", self.header, self.exth_offset + 4)
+            self.exth_length = ((self.exth_length + 3) >> 2) << 2  # round to next 4 byte boundary
+            self.exth = self.header[self.exth_offset : self.exth_offset + self.exth_length]
 
         # parse the exth / metadata
         self.parseMetaData()
@@ -706,23 +689,13 @@ class MobiHeader:
                 exth_name = MobiHeader.id_map_values[id]
                 if size == 9:
                     (value,) = struct.unpack(b"B", content)
-                    logger.debug(
-                        "{0:3d} byte {1:<30s} {2:d}".format(id, exth_name, value)
-                    )
+                    logger.debug(f"{id:3d} byte {exth_name:<30s} {value:d}")
                 elif size == 10:
                     (value,) = struct.unpack(b">H", content)
-                    logger.debug(
-                        "{0:3d} word {1:<30s} 0x{2:0>4X} ({2:d})".format(
-                            id, exth_name, value
-                        )
-                    )
+                    logger.debug(f"{id:3d} word {exth_name:<30s} 0x{value:0>4X} ({value:d})")
                 elif size == 12:
                     (value,) = struct.unpack(b">L", content)
-                    logger.debug(
-                        "{0:3d} long {1:<30s} 0x{2:0>8X} ({2:d})".format(
-                            id, exth_name, value
-                        )
-                    )
+                    logger.debug(f"{id:3d} long {exth_name:<30s} 0x{value:0>8X} ({value:d})")
                 else:
                     logger.debug(
                         "{0: >3d} {1: >4d} {2: <30s} (0x{3:s})".format(
@@ -734,18 +707,10 @@ class MobiHeader:
                     )
             elif id in MobiHeader.id_map_hexstrings:
                 exth_name = MobiHeader.id_map_hexstrings[id]
-                logger.debug(
-                    "{0:3d} {1:4d} {2:<30s} 0x{3:s}".format(
-                        id, contentsize, exth_name, hexlify(content)
-                    )
-                )
+                logger.debug(f"{id:3d} {contentsize:4d} {exth_name:<30s} 0x{hexlify(content):s}")
             else:
-                exth_name = "Unknown EXTH ID {0:d}".format(id)
-                logger.debug(
-                    "{0: >3d} {1: >4d} {2: <30s} 0x{3:s}".format(
-                        id, contentsize, exth_name, hexlify(content)
-                    )
-                )
+                exth_name = f"Unknown EXTH ID {id:d}"
+                logger.debug(f"{id: >3d} {contentsize: >4d} {exth_name: <30s} 0x{hexlify(content):s}")
             pos += size
         return
 
@@ -787,9 +752,7 @@ class MobiHeader:
             title_length = 0
             self.title = self.sect.palmname.decode("latin-1", errors="replace")
         else:
-            self.title = self.header[title_offset : title_offset + title_length].decode(
-                self.codec, errors="replace"
-            )
+            self.title = self.header[title_offset : title_offset + title_length].decode(self.codec, errors="replace")
             # title record always padded with two nul bytes and then padded with nuls to next 4 byte boundary
             title_length = ((title_length + 2 + 3) >> 2) << 2
 
@@ -816,32 +779,23 @@ class MobiHeader:
         logger.debug("")
 
         if self.exth_length > 0:
-            logger.debug(
-                "EXTH metadata, offset %d, padded length %d"
-                % (self.exth_offset, self.exth_length)
-            )
+            logger.debug("EXTH metadata, offset %d, padded length %d" % (self.exth_offset, self.exth_length))
             self.dump_exth()
             logger.debug("")
 
         if len(self.extra1) > 0:
-            logger.debug(
-                "Extra data between EXTH and Title, length %d" % len(self.extra1)
-            )
+            logger.debug("Extra data between EXTH and Title, length %d" % len(self.extra1))
             logger.debug(hexlify(self.extra1))
             logger.debug("")
 
         if title_length > 0:
             logger.debug(
-                "Title in header at offset %d, padded length %d: '%s'"
-                % (title_offset, title_length, self.title)
+                "Title in header at offset %d, padded length %d: '%s'" % (title_offset, title_length, self.title)
             )
             logger.debug("")
 
         if len(self.extra2) > 0:
-            print(
-                "Extra data between Title and end of header, length %d"
-                % len(self.extra2)
-            )
+            print("Extra data between Title and end of header, length %d" % len(self.extra2))
             print(hexlify(self.extra2))
             print("")
 
@@ -928,17 +882,11 @@ class MobiHeader:
             data = trimTrailingDataEntries(self.sect.loadSection(self.start + i))
             dataList.append(self.unpack(data))
             if self.isK8():
-                self.sect.setsectiondescription(
-                    self.start + i, "KF8 Text Section {0:d}".format(i)
-                )
+                self.sect.setsectiondescription(self.start + i, f"KF8 Text Section {i:d}")
             elif self.version == 0:
-                self.sect.setsectiondescription(
-                    self.start + i, "PalmDOC Text Section {0:d}".format(i)
-                )
+                self.sect.setsectiondescription(self.start + i, f"PalmDOC Text Section {i:d}")
             else:
-                self.sect.setsectiondescription(
-                    self.start + i, "Mobipocket Text Section {0:d}".format(i)
-                )
+                self.sect.setsectiondescription(self.start + i, f"Mobipocket Text Section {i:d}")
         rawML = b"".join(dataList)
         self.rawSize = len(rawML)
         return rawML

@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
-from .compatibility_utils import PY2, bchr, lmap, bstr
+from .compatibility_utils import PY2, bchr, bstr, lmap
 
 if PY2:
     range = xrange
@@ -96,9 +94,7 @@ class HuffcdicReader:
             slice = cdic[18 + off : 18 + off + (blen & 0x7FFF)]
             return (slice, blen & 0x8000)
 
-        self.dictionary += lmap(
-            getslice, struct.unpack_from(bstr(">%dH" % n), cdic, 16)
-        )
+        self.dictionary += lmap(getslice, struct.unpack_from(bstr(">%dH" % n), cdic, 16))
 
     def unpack(self, data):
         q = HuffcdicReader.q

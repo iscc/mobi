@@ -1,21 +1,18 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
 import os
-from .unipath import pathof
+import re
+
 from loguru import logger
 
-
-import re
+from .mobi_index import MobiIndex
 
 # note: re requites the pattern to be the exact same type as the data to be searched in python3
 # but u"" is not allowed for the pattern itself only b""
-
 from .mobi_utils import toBase32
-from .mobi_index import MobiIndex
+from .unipath import pathof
 
 DEBUG_NCX = False
 
@@ -94,9 +91,7 @@ class ncxExtract:
                     print("kind: ", tmp["kind"])
                     print("heading level: ", tmp["hlvl"])
                     print("parent:", tmp["parent"])
-                    print(
-                        "first child: ", tmp["child1"], " last child: ", tmp["childn"]
-                    )
+                    print("first child: ", tmp["child1"], " last child: ", tmp["childn"])
                     print("pos_fid is ", tmp["pos_fid"])
                     print("\n\n")
                 num += 1
@@ -149,7 +144,7 @@ class ncxExtract:
 
             for i in range(start, end):
                 e = indx_data[i]
-                if not e["hlvl"] == lvl:
+                if e["hlvl"] != lvl:
                     continue
                 # open entry
                 num += 1
@@ -160,9 +155,7 @@ class ncxExtract:
                 xml += entry + "\n"
                 # recurs
                 if e["child1"] >= 0:
-                    xmlrec, max_lvl, num = recursINDX(
-                        max_lvl, num, lvl + 1, e["child1"], e["childn"] + 1
-                    )
+                    xmlrec, max_lvl, num = recursINDX(max_lvl, num, lvl + 1, e["child1"], e["childn"] + 1)
                     xml += xmlrec
                 # close entry
                 xml += indent + "</navPoint>\n"
@@ -171,7 +164,7 @@ class ncxExtract:
         body, max_lvl, num = recursINDX()
         header = ncx_header % (lang, ident, max_lvl + 1, title)
         ncx = header + body + ncx_footer
-        if not len(indx_data) == num:
+        if len(indx_data) != num:
             print("Warning: different number of entries in NCX", len(indx_data), num)
         return ncx
 
@@ -240,7 +233,7 @@ class ncxExtract:
                 e = indx_data[i]
                 htmlfile = e["filename"]
                 desttag = e["idtag"]
-                if not e["hlvl"] == lvl:
+                if e["hlvl"] != lvl:
                     continue
                 # open entry
                 num += 1
@@ -254,9 +247,7 @@ class ncxExtract:
                 xml += entry + "\n"
                 # recurs
                 if e["child1"] >= 0:
-                    xmlrec, max_lvl, num = recursINDX(
-                        max_lvl, num, lvl + 1, e["child1"], e["childn"] + 1
-                    )
+                    xmlrec, max_lvl, num = recursINDX(max_lvl, num, lvl + 1, e["child1"], e["childn"] + 1)
                     xml += xmlrec
                 # close entry
                 xml += indent + "</navPoint>\n"
@@ -265,7 +256,7 @@ class ncxExtract:
         body, max_lvl, num = recursINDX()
         header = ncx_header % (lang, ident, max_lvl + 1, title)
         ncx = header + body + ncx_footer
-        if not len(indx_data) == num:
+        if len(indx_data) != num:
             print("Warning: different number of entries in NCX", len(indx_data), num)
         return ncx
 

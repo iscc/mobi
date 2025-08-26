@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-from __future__ import unicode_literals, division, absolute_import, print_function
 
 DEBUG_USE_ORDERED_DICTIONARY = False  # OrderedDict is supoorted >= python 2.7.
 """ set to True to use OrderedDict for K8RESCProcessor.parsetag.tattr."""
@@ -12,9 +10,9 @@ if DEBUG_USE_ORDERED_DICTIONARY:
 else:
     dict_ = dict
 
-from .compatibility_utils import unicode_str
 from loguru import logger
 
+from .compatibility_utils import unicode_str
 from .mobi_utils import fromBase32
 
 _OPF_PARENT_TAGS = [
@@ -30,7 +28,7 @@ _OPF_PARENT_TAGS = [
 ]
 
 
-class K8RESCProcessor(object):
+class K8RESCProcessor:
     def __init__(self, data, debug=False):
         self._debug = debug
         self.resc = None
@@ -69,9 +67,7 @@ class K8RESCProcessor(object):
                 self.resc_length = end_pos - start_pos
         if self.resc_length != resc_size:
             logger.debug(
-                "Warning: RESC section length({:d}bytes) does not match its size({:d}bytes).".format(
-                    self.resc_length, resc_size
-                )
+                f"Warning: RESC section length({self.resc_length:d}bytes) does not match its size({resc_size:d}bytes)."
             )
         # now parse RESC after converting it to unicode from utf-8
         self.resc = unicode_str(data[start_pos : start_pos + self.resc_length])
@@ -120,15 +116,11 @@ class K8RESCProcessor(object):
     def parseData(self):
         for prefix, tname, tattr, tcontent in self.resc_tag_iter():
             if self._debug:
-                logger.debug(
-                    "   Parsing RESC: %s %s %s %s" % (prefix, tname, tattr, tcontent)
-                )
+                logger.debug("   Parsing RESC: %s %s %s %s" % (prefix, tname, tattr, tcontent))
             if tname == "package":
                 self.package_ver = tattr.get("version", "2.0")
                 package_prefix = tattr.get("prefix", "")
-                if self.package_ver.startswith("3") or package_prefix.startswith(
-                    "rendition"
-                ):
+                if self.package_ver.startswith("3") or package_prefix.startswith("rendition"):
                     self.need3 = True
             if tname == "spine":
                 self.spine_ppd = tattr.get("page-progession-direction", None)
