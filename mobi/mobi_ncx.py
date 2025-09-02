@@ -151,7 +151,7 @@ class ncxExtract:
                 link = "%s#filepos%d" % (htmlfile, e["pos"])
                 tagid = "np_%d" % num
                 entry = ncx_entry % (tagid, num, e["text"], link)
-                entry = re.sub(re.compile("^", re.M), indent, entry, 0)
+                entry = re.sub(re.compile("^", re.M), indent, entry)
                 xml += entry + "\n"
                 # recurs
                 if e["child1"] >= 0:
@@ -243,7 +243,7 @@ class ncxExtract:
                     link = "Text/%s#%s" % (htmlfile, desttag)
                 tagid = "np_%d" % num
                 entry = ncx_entry % (tagid, num, e["text"], link)
-                entry = re.sub(re.compile("^", re.M), indent, entry, 0)
+                entry = re.sub(re.compile("^", re.M), indent, entry)
                 xml += entry + "\n"
                 # recurs
                 if e["child1"] >= 0:
