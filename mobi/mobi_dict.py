@@ -422,4 +422,4 @@ class dictSupport:
             else:
                 logger.debug("Error: Inflection rule mode %x is not implemented" % abyte)
                 return None
-        return utf8_str(byteArray.tostring())
+        return utf8_str(byteArray.tobytes())
