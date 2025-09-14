@@ -75,6 +75,14 @@ Options:
     -r                 write raw data to the output folder
 ```
 
+### [0.4.1] - 2025-09-14
+
+- Fix `DeprecationWarning` for deprecated `datetime.utcnow()` by using timezone-aware alternative
+- Fix `DeprecationWarning` for `count` being passed as positional argument in `re.sub()`
+- Fix `DeprecationWarning` by using `array.array.tobytes()` instead of deprecated `tostring()`
+  method
+- Exclude development files from source distribution to reduce package size
+
 ### [0.4.0] - 2025-08-26
 
 - **BREAKING**: Drop Python 2 support, modernize codebase
