@@ -4,7 +4,7 @@
 
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from xml.sax.saxutils import escape as xmlescape
 
 from loguru import logger
@@ -222,7 +222,7 @@ class OPFProcessor:
             self.createMetaTag(
                 data,
                 "dcterms:modified",
-                datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
 
         if self.isK8 and has_obfuscated_fonts:

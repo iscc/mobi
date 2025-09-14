@@ -121,3 +121,6 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+filterwarnings = [
+    "ignore:.*'imghdr' is deprecated.*:DeprecationWarning",
+]
